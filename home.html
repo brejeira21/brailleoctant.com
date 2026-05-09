@@ -1,14 +1,43 @@
-{% extends "base.html" %}
-
-{% block title %}
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>
 	Homepage | Our World of Text
-{% endblock %}
+</title>
+		<link rel="stylesheet" href="/static/css/print.css?v=0418" type="text/css" media="print">
+		<link rel="shortcut icon" type="image/png" href="/static/favicon.png"/>
+		<link rel="stylesheet" type="text/css" href="/static/css/site.css?v=0418">
+		<link rel="shortcut icon" href="/static/favicon.png">
+		
+	</head>
+	<body>
+		<div class="container">
+			<div class="span-19">
+				<div id="topbar" class="span-19 last">
+					
+						
+							Logged in as miguel0303:
+						
+					
+					<a href="/home/">Home</a>
+					
+						| <a href="/accounts/profile/">Your Worlds</a>
+						
+						
+						| <a href="https://uvias.com/logoff?service=owot">Logout</a>
+					
+				</div>
 
-{% block header %}
+				<div class="span-19 last">
+					
 	<h1>About Our World of Text</h1>
-{% endblock %}
 
-{% block content %}
+				</div>
+
+				<div class="span-14">
+					
 	<div class="text">
 		<p>
 			<a href="/">Our World of Text</a> is an infinite
@@ -18,7 +47,7 @@
 		</p>
 		<p>
 			Put any letters at the end of the URL to go to a new world. For
-			example, <a href="/forexample">{{ website }}forexample</a>.
+			example, <a href="/forexample">https://ourworldoftext.com/forexample</a>.
 			They all start off blank. You can also <a href="/accounts/profile/">create a custom
 			world</a> for you and your friends.
 		</p>
@@ -31,4 +60,39 @@
 			Contact OWOT: <a href="mailto:ourworldoftext@gmail.com">ourworldoftext@gmail.com</a>
 		</p>
 	</div>
-{% endblock %}
+
+				</div>
+				<div class="span-5 last">
+					&nbsp;
+				</div>
+			</div>
+		</div>
+		
+		
+		<script>
+			function addCollapsableEvent(title, cont) {
+				title.onclick = function() {
+					var disp = cont.style.display;
+					if(disp == "none") {
+						cont.style.display = "";
+					} else {
+						cont.style.display = "none";
+					}
+				}
+			}
+			function makeCollapsableSections() {
+				var sections = document.getElementsByClassName("content_set");
+				for(var i = 0; i < sections.length; i++) {
+					var sect = sections[i];
+					var titles = sect.getElementsByClassName("content_set_title");
+					var conts = sect.getElementsByClassName("content_set_content");
+					if(!titles.length || !conts.length) continue;
+					var title = titles[0];
+					var cont = conts[0];
+					addCollapsableEvent(title, cont);
+				}
+			}
+			makeCollapsableSections();
+		</script>
+	</body>
+</html>
