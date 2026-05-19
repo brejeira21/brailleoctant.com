@@ -5,7 +5,7 @@
 		<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
 		<link rel="shortcut icon" type="image/png" href="https://api.websim.com/blobs/019df0e7-2b15-752c-bbd0-d39680d9e944.png">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-		<meta name="description" content="Infinitely large website. Write anywhere.">
+		<meta name="description" content="Infinitely large Braille octant wall. Leave your mark anywhere.">
 		<meta property="og:image" content="https://api.websim.com/blobs/019df0e7-2b15-752c-bbd0-d39680d9e944.png">
 		<link type="text/css" rel="stylesheet" href="https://halohash.github.io/worldofhash/static/css/yourworld.css">
 		
@@ -10353,7 +10353,25 @@ menu.addOption("Seed Teleport", (t => {
 }));
 </script>
 <script>
-	(function() {
+(function() {
+    // ==========================================
+    // 0. Inject Custom Font (Braille Octant Mono 2.4)
+    // ==========================================
+    const fontId = "braille-octant-mono-style";
+    if (!document.getElementById(fontId)) {
+        let styleEl = document.createElement("style");
+        styleEl.id = fontId;
+        styleEl.appendChild(document.createTextNode(`
+            @font-face {
+                font-family: 'Braille Octant Mono 2.4';
+                src: url('https://cdn.jsdelivr.net/gh/brejeira21/Braille-Octant-Mono-Version-2.4-@main/BrailleOctantMono2.4.ttf') format('truetype');
+                font-weight: normal;
+                font-style: normal;
+            }
+        `));
+        document.head.appendChild(styleEl);
+    }
+
     // 1. Core Variables & State
     let hue = 0;
     let hueSpeed = 30.0; // Supports floating-point decimals
@@ -10381,7 +10399,7 @@ menu.addOption("Seed Teleport", (t => {
     hudContainer.style.backgroundColor = "rgba(0, 0, 0, 0.75)";
     hudContainer.style.padding = "8px 12px";
     hudContainer.style.borderRadius = "4px";
-    hudContainer.style.fontFamily = "monospace, sans-serif";
+    hudContainer.style.fontFamily = "'Braille Octant Mono 2.4', monospace, sans-serif";
     hudContainer.style.fontSize = "13px";
     hudContainer.style.color = "#ffffff";
     hudContainer.style.boxShadow = "0px 2px 5px rgba(0,0,0,0.5)";
@@ -10445,7 +10463,7 @@ menu.addOption("Seed Teleport", (t => {
     txtInput.style.border = "1px solid #555";
     txtInput.style.borderRadius = "3px";
     txtInput.style.padding = "2px 4px";
-    txtInput.style.fontFamily = "monospace";
+    txtInput.style.fontFamily = "'Braille Octant Mono 2.4', monospace";
     txtInput.style.fontSize = "12px";
     txtInput.style.resize = "vertical"; // Allows scaling heights while keeping widths neat
     txtInput.style.overflow = "hidden";
