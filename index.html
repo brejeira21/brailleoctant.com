@@ -3839,19 +3839,19 @@ function autoArrowKeyMoveStart(dir) {
 	}
 	switch(dir) {
 		case "up":
-			autoArrowKeyMoveState.up = true;
+			autoArrowKeyMoveState.up = false;
 			if(autoArrowKeyMoveState.y_t == 0) autoArrowKeyMoveState.y_t = getDate();
 			break;
 		case "down":
-			autoArrowKeyMoveState.down = true;
+			autoArrowKeyMoveState.down = false;
 			if(autoArrowKeyMoveState.y_t == 0) autoArrowKeyMoveState.y_t = getDate();
 			break;
 		case "left":
-			autoArrowKeyMoveState.left = true;
+			autoArrowKeyMoveState.left = false;
 			if(autoArrowKeyMoveState.x_t == 0) autoArrowKeyMoveState.x_t = getDate();
 			break;
 		case "right":
-			autoArrowKeyMoveState.right = true;
+			autoArrowKeyMoveState.right = false;
 			if(autoArrowKeyMoveState.x_t == 0) autoArrowKeyMoveState.x_t = getDate();
 			break;
 	}
