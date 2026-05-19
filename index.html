@@ -746,7 +746,7 @@
 		<script src="https://halohash.github.io/worldofhash/static/yw/javascript/modals.js"></script>
 		<script src="https://halohash.github.io/worldofhash/static/yw/javascript/menu.js"></script>
 		<script src="https://halohash.github.io/worldofhash/static/yw/javascript/permissions.js"></script>
-		<script src="https://halohash.github.io/worldofhash/static/yw/javascript/chat.js"></script>
+		<!-- <script src="https://halohash.github.io/worldofhash/static/yw/javascript/chat.js"></script> -->
 		<script src="https://halohash.github.io/worldofhash/static/yw/javascript/renderer.js"></script>
 	</body>
 </html>
@@ -967,7 +967,7 @@ var keyConfig = {
 var defaultSizes = {
 	// in pixels
 	cellW: 10,
-	cellH: 18,
+	cellH: 20,
 	// assigned later
 	tileW: null,
 	tileH: null,
@@ -8402,7 +8402,7 @@ function reapplyProperties(props) {
 	state.worldModel.quick_erase = props.opts.quickErase;
 
 	if(state.worldModel.square_chars) {
-		defaultSizes.cellW = 18;
+		defaultSizes.cellW = 20;
 	} else {
 		defaultSizes.cellW = 10;
 	}
@@ -10863,7 +10863,7 @@ if (typeof updateScaleConsts === "function") {
     let funcBody = rawFunc.match(/\{([\s\S]*)\}/)[1].replace(/16/g, "20");
     window.updateScaleConsts = new Function(funcBody);
     window.updateScaleConsts();
-}
+};
  
 client_commands.gridsize(["10x20"]);
 </script>
