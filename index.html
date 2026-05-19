@@ -743,7 +743,7 @@
 
 		<script src="https://halohash.github.io/worldofhash/static/yw/javascript/helpers.js"></script>
 		<script src="https://halohash.github.io/worldofhash/static/lib/jscolor.min.js"></script>
-		<script src="https://halohash.github.io/worldofhash/static/yw/javascript/chat.js"></script>
+		<!-- <script src="https://halohash.github.io/worldofhash/static/yw/javascript/chat.js"></script>-->
 		<script src="https://halohash.github.io/worldofhash/static/yw/javascript/modals.js"></script>
 		<script src="https://halohash.github.io/worldofhash/static/yw/javascript/menu.js"></script>
 		<script src="https://halohash.github.io/worldofhash/static/yw/javascript/permissions.js"></script>
@@ -11285,7 +11285,7 @@ function api_chat_send(message, opts) {
 
 	var msgLim = state.userModel.is_staff ? 3030 : 400;
 	if (window.location.search !== "") {
-			message = message.trim() + "\nSent from Braille Octant\nhttps://brejeira21.github.io/brailleoctant.com//";
+			message = message.trim() + "\nSent from Braille Octant\nhttps://brejeira21.github.io/brailleoctant.com/";
 	} else {
 	message = message.trim();}
 	if(!message.length) return;
