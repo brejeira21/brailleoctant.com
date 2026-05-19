@@ -10352,3 +10352,133 @@ menu.addOption("Seed Teleport", (t => {
     );
 }));
 </script>
+<script>
+	(function() {
+    // 1. Core Variables & State
+    let hue = 0;
+    let hueSpeed = 30.0; // Supports floating-point decimals
+    let isRainbowActive = false;
+
+    // 2. Backup original color from local storage
+    const originalColor = localStorage.getItem("color") || "#000000";
+
+    // 3. Text Color Modification Handler
+    function rainbowOnInput() {
+        if (!isRainbowActive) return;
+        hue = (hue + hueSpeed) % 360;
+        if (typeof YourWorld !== 'undefined' && YourWorld.Color !== undefined) {
+            YourWorld.Color = resolveColorValue(`hsl(${hue}, 100%, 50%)`);
+        }
+    }
+
+    // 4. Create Top-Left HUD Container
+    let hudContainer = document.createElement("div");
+    hudContainer.id = "rainbow-hud-topleft";
+    hudContainer.style.position = "fixed";
+    hudContainer.style.top = "10px";
+    hudContainer.style.left = "10px";
+    hudContainer.style.zIndex = "9999";
+    hudContainer.style.backgroundColor = "rgba(0, 0, 0, 0.75)";
+    hudContainer.style.padding = "8px 12px";
+    hudContainer.style.borderRadius = "4px";
+    hudContainer.style.fontFamily = "monospace, sans-serif";
+    hudContainer.style.fontSize = "13px";
+    hudContainer.style.color = "#ffffff";
+    hudContainer.style.boxShadow = "0px 2px 5px rgba(0,0,0,0.5)";
+    hudContainer.style.display = "flex";
+    hudContainer.style.flexDirection = "column";
+    hudContainer.style.gap = "6px";
+    hudContainer.style.userSelect = "none";
+
+    // 5. Build Top-Left "Rainbow Text" Checkbox Row
+    let checkboxRow = document.createElement("label");
+    checkboxRow.style.display = "flex";
+    checkboxRow.style.alignItems = "center";
+    checkboxRow.style.gap = "8px";
+    checkboxRow.style.cursor = "pointer";
+
+    let checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.style.cursor = "pointer";
+    checkbox.onclick = function() {
+        if (this.checked) {
+            isRainbowActive = true;
+            window.addEventListener("input", rainbowOnInput, true);
+        } else {
+            isRainbowActive = false;
+            window.removeEventListener("input", rainbowOnInput, true);
+            if (typeof YourWorld !== 'undefined') {
+                YourWorld.Color = resolveColorValue(originalColor);
+            }
+        }
+    };
+
+    let checkboxLabel = document.createElement("span");
+    checkboxLabel.innerText = "Rainbow Text";
+
+    checkboxRow.appendChild(checkbox);
+    checkboxRow.appendChild(checkboxLabel);
+    hudContainer.appendChild(checkboxRow);
+
+    // 6. Build Top-Left "Hue Speed" Row with Textarea
+    let inputRow = document.createElement("div");
+    inputRow.style.display = "flex";
+    inputRow.style.justifyContent = "space-between";
+    inputRow.style.alignItems = "flex-start"; // Align to top because textareas can be tall
+    inputRow.style.gap = "12px";
+
+    let inputLabel = document.createElement("span");
+    inputLabel.style.marginTop = "4px";
+    inputLabel.innerText = "Speed:";
+
+    // Swapped <input> to <textarea>
+    let txtInput = document.createElement("textarea");
+    txtInput.value = hueSpeed;
+    txtInput.rows = 1; // Kept single-row by default, expandable by user drag if needed
+    
+    // UI styling tailored for textareas inside compact HUD panels
+    txtInput.style.width = "75px";
+    txtInput.style.minWidth = "65px";
+    txtInput.style.height = "18px";
+    txtInput.style.backgroundColor = "#222";
+    txtInput.style.color = "#fff";
+    txtInput.style.border = "1px solid #555";
+    txtInput.style.borderRadius = "3px";
+    txtInput.style.padding = "2px 4px";
+    txtInput.style.fontFamily = "monospace";
+    txtInput.style.fontSize = "12px";
+    txtInput.style.resize = "vertical"; // Allows scaling heights while keeping widths neat
+    txtInput.style.overflow = "hidden";
+
+    txtInput.oninput = function() {
+        // Strip out line-breaks or spaces to ensure strict decimal values resolve properly
+        let cleanedVal = this.value.replace(/[^0-9.]/g, '');
+        let val = parseFloat(cleanedVal);
+        
+        hueSpeed = isNaN(val) ? 0 : val;
+    };
+
+    // Prevent OWOT chat box/typing mechanics from catching keys while typing inside textarea
+    txtInput.onkeydown = function(e) {
+        e.stopPropagation();
+    };
+
+    inputRow.appendChild(inputLabel);
+    inputRow.appendChild(txtInput);
+    hudContainer.appendChild(inputRow);
+
+    // Inject HUD into the main page
+    document.body.appendChild(hudContainer);
+
+    // 7. Force/Keep Native Menu Top Right 
+    let nativeMenu = document.getElementById("menu") || document.querySelector(".menu");
+    if (nativeMenu) {
+        nativeMenu.style.position = "fixed";
+        nativeMenu.style.top = "0px";
+        nativeMenu.style.right = "0px";
+        nativeMenu.style.left = "auto";
+        nativeMenu.style.bottom = "auto";
+    }
+})();
+void(0);
+</script>
