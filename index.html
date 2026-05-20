@@ -10956,7 +10956,7 @@ menu.addOption("Seed Teleport", (t => {
 }));
 </script>
 <script>
-(function() {
+javascript:(function() {
     // ==========================================
     // 0. Inject Custom Font (Braille Octant Mono 2.4)
     // ==========================================
@@ -10992,12 +10992,14 @@ menu.addOption("Seed Teleport", (t => {
         }
     }
 
-    // 4. Create Top-Left HUD Container
+    // 4. Create Bottom-Right HUD Container
     let hudContainer = document.createElement("div");
-    hudContainer.id = "rainbow-hud-topleft";
+    hudContainer.id = "rainbow-hud-bottomright";
     hudContainer.style.position = "fixed";
-    hudContainer.style.top = "650px";
-    hudContainer.style.left = "1355px";
+    hudContainer.style.bottom = "20px";       // Positioned relative to the bottom
+    hudContainer.style.right = "20px";        // Positioned relative to the right
+    hudContainer.style.top = "auto";          // Cleared top positioning
+    hudContainer.style.left = "auto";         // Cleared left positioning
     hudContainer.style.zIndex = "9999";
     hudContainer.style.backgroundColor = "rgba(0, 0, 0, 0.75)";
     hudContainer.style.padding = "8px 12px";
@@ -11011,7 +11013,7 @@ menu.addOption("Seed Teleport", (t => {
     hudContainer.style.gap = "6px";
     hudContainer.style.userSelect = "none";
 
-    // 5. Build Top-Left "Rainbow Text" Checkbox Row
+    // 5. Build "Rainbow Text" Checkbox Row
     let checkboxRow = document.createElement("label");
     checkboxRow.style.display = "flex";
     checkboxRow.style.alignItems = "center";
@@ -11041,23 +11043,21 @@ menu.addOption("Seed Teleport", (t => {
     checkboxRow.appendChild(checkboxLabel);
     hudContainer.appendChild(checkboxRow);
 
-    // 6. Build Top-Left "Hue Speed" Row with Textarea
+    // 6. Build "Hue Speed" Row with Textarea
     let inputRow = document.createElement("div");
     inputRow.style.display = "flex";
     inputRow.style.justifyContent = "space-between";
-    inputRow.style.alignItems = "flex-start"; // Align to top because textareas can be tall
+    inputRow.style.alignItems = "flex-start"; 
     inputRow.style.gap = "12px";
 
     let inputLabel = document.createElement("span");
     inputLabel.style.marginTop = "4px";
     inputLabel.innerText = "Speed:";
 
-    // Swapped <input> to <textarea>
     let txtInput = document.createElement("textarea");
     txtInput.value = hueSpeed;
-    txtInput.rows = 1; // Kept single-row by default, expandable by user drag if needed
+    txtInput.rows = 1; 
     
-    // UI styling tailored for textareas inside compact HUD panels
     txtInput.style.width = "75px";
     txtInput.style.minWidth = "65px";
     txtInput.style.height = "18px";
@@ -11068,18 +11068,15 @@ menu.addOption("Seed Teleport", (t => {
     txtInput.style.padding = "2px 4px";
     txtInput.style.fontFamily = "'Braille Octant Mono 2.4', monospace";
     txtInput.style.fontSize = "12px";
-    txtInput.style.resize = "vertical"; // Allows scaling heights while keeping widths neat
+    txtInput.style.resize = "vertical"; 
     txtInput.style.overflow = "hidden";
 
     txtInput.oninput = function() {
-        // Strip out line-breaks or spaces to ensure strict decimal values resolve properly
         let cleanedVal = this.value.replace(/[^0-9.]/g, '');
         let val = parseFloat(cleanedVal);
-        
         hueSpeed = isNaN(val) ? 0 : val;
     };
 
-    // Prevent OWOT chat box/typing mechanics from catching keys while typing inside textarea
     txtInput.onkeydown = function(e) {
         e.stopPropagation();
     };
