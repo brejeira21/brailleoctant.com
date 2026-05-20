@@ -11182,3 +11182,113 @@ input, button {
 document.body.appendChild(twstyle);
 [...document.getElementsByClassName("chat_tab_button")].forEach(e=>{e.style.minWidth = ""; e.firstChild.textContent = e.firstChild.textContent.replaceAll(" ", "")});
 </script>
+<script>
+	/* ============================================================
+   Full Script: New Version of Braille Patterns (U+2800-U+28FF)
+   ============================================================ */
+(function() {
+    /* ============================================================
+       1. Core 2x4 Dot Renderer
+       ============================================================ */
+    function draw2x4Braille(ctx, x, y, width, height, mask) {
+        const rows = 4;
+        const cols = 2;
+        
+        // Calculate the grid spacing for the 2x4 layout
+        const subW = width / cols;
+        const subH = height / rows;
+        
+        // Determine the radius of each dot based on cell size
+        const dotRadius = Math.min(subW, subH) * 0.3; 
+
+        // Braille bit-mapping order (1 to 8)
+        // Bit 0 -> Dot 1 (Col 0, Row 0)
+        // Bit 1 -> Dot 2 (Col 0, Row 1)
+        // Bit 2 -> Dot 3 (Col 0, Row 2)
+        // Bit 3 -> Dot 4 (Col 1, Row 0)
+        // Bit 4 -> Dot 5 (Col 1, Row 1)
+        // Bit 5 -> Dot 6 (Col 1, Row 2)
+        // Bit 6 -> Dot 7 (Col 0, Row 3)
+        // Bit 7 -> Dot 8 (Col 1, Row 3)
+        const dotLayout = [
+            { col: 0, row: 0 }, // Bit 0 (Dot 1)
+            { col: 0, row: 1 }, // Bit 1 (Dot 2)
+            { col: 0, row: 2 }, // Bit 2 (Dot 3)
+            { col: 1, row: 0 }, // Bit 3 (Dot 4)
+            { col: 1, row: 1 }, // Bit 4 (Dot 5)
+            { col: 1, row: 2 }, // Bit 5 (Dot 6)
+            { col: 0, row: 3 }, // Bit 6 (Dot 7)
+            { col: 1, row: 3 }  // Bit 7 (Dot 8)
+        ];
+
+        ctx.beginPath();
+        for (let i = 0; i < 8; i++) {
+            // Check if the i-th bit is set in the mask
+            if ((mask >> i) & 1) {
+                let layout = dotLayout[i];
+                // Center the dot within its sub-grid partition
+                let cx = x + (layout.col * subW) + (subW / 2);
+                let cy = y + (layout.row * subH) + (subH / 2);
+                
+                ctx.moveTo(cx + dotRadius, cy);
+                ctx.arc(cx, cy, dotRadius, 0, Math.PI * 2);
+            }
+        }
+        ctx.fill();
+    }
+
+    /* ============================================================
+       2. Patching the drawBlockChar Dispatcher
+       ============================================================ */
+    const originalDrawBlockChar = window.drawBlockChar;
+
+    window.drawBlockChar = function(char_code, ctx, x, y, width, height) {
+        // Range Check: Standard Braille Patterns U+2800 to U+28FF
+        if (char_code >= 0x2800 && char_code <= 0x28FF) {
+            const mask = char_code - 0x2800;
+            draw2x4Braille(ctx, x, y, width, height, mask);
+            return;
+        }
+
+        // Fallback to original renderer for standard blocks
+        return originalDrawBlockChar.apply(this, arguments);
+    };
+
+    /* ============================================================
+       3. Update Validity Check (Required for OWOT to call drawBlockChar)
+       ============================================================ */
+    const originalIsValid = window.isValidSpecialSymbol;
+    window.isValidSpecialSymbol = function(char_code) {
+        if (char_code >= 0x2800 && char_code <= 0x28FF) {
+            return true;
+        }
+        return originalIsValid(char_code);
+    };
+
+    /* ============================================================
+       4. Register Chat Command
+       ============================================================ */
+    if (window.w && w.chat && w.chat.registerCommand) {
+        // Command changed to /b24 to represent 2x4 font layout
+        w.chat.registerCommand("b24", function(args) {
+            let input = args[0];
+            if (!input) return;
+            let val = parseInt(input, 16);
+            if (!isNaN(val) && val >= 0 && val <= 0xFF) {
+                let char = String.fromCodePoint(0x2800 + val);
+                w.typeChar(char);
+            }
+        }, ["hex"], "Type 2x4 Braille dot char", "FF");
+    }
+
+    // Settings Cleanup and screen refresh
+    if (typeof bufferLargeChars !== 'undefined') {
+        bufferLargeChars = false; 
+    }
+    if (window.w && typeof w.redraw === 'function') {
+        w.redraw();
+    }
+    
+    console.log("Braille Patterns (U+2800-U+28FF) 2x4 Dot Renderer Loaded successfully.");
+})();
+</script>
