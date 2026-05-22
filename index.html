@@ -10940,65 +10940,20 @@ client_commands.gridsize(["10x20"]);
 })();
 </script>
 <script>
-// Seed-based teleportation with GitHub Pages URL support
 cyrb128 = t => {
     let e = 1779033703, i = 3144134277, l = 1013904242, a = 2773480762;
-    for (let r, h = 0; h < t.length; h++) 
-        r = t.charCodeAt(h), 
-        e = i ^ Math.imul(e ^ r, 597399067), 
-        i = l ^ Math.imul(i ^ r, 2869860233), 
-        l = a ^ Math.imul(l ^ r, 951274213), 
-        a = e ^ Math.imul(a ^ r, 2716044179);
-    return e = Math.imul(l ^ e >>> 18, 597399067), 
-           i = Math.imul(a ^ i >>> 22, 2869860233), 
-           l = Math.imul(e ^ l >>> 17, 951274213), 
-           a = Math.imul(i ^ a >>> 19, 2716044179), 
-           [(e ^ i ^ l ^ a) >>> 0, (i ^ e) >>> 0, (l ^ e) >>> 0, (a ^ e) >>> 0]
+    for (let r, h = 0; h < t.length; h++) r = t.charCodeAt(h), e = i ^ Math.imul(e ^ r, 597399067), i = l ^ Math.imul(i ^ r, 2869860233), l = a ^ Math.imul(l ^ r, 951274213), a = e ^ Math.imul(a ^ r, 2716044179);
+    return e = Math.imul(l ^ e >>> 18, 597399067), i = Math.imul(a ^ i >>> 22, 2869860233), l = Math.imul(e ^ l >>> 17, 951274213), a = Math.imul(i ^ a >>> 19, 2716044179), [(e ^ i ^ l ^ a) >>> 0, (i ^ e) >>> 0, (l ^ e) >>> 0, (a ^ e) >>> 0]
 };
-
-// Menu option for seed teleportation with URL path generation
 menu.addOption("Seed Teleport", (t => {
-    const baseDomain = "https://brejeira21.github.io/brailleoctant.com/";
-    const seedInput = prompt("Teleport to (enter seed or path)");
+    seed = cyrb128(prompt("Teleport to"));
     
-    if (seedInput) {
-        // Check if input looks like a URL path
-        if (seedInput.startsWith("/")) {
-            // Direct path provided - navigate to it
-            window.location.href = baseDomain + seedInput.substring(1);
-        } else {
-            // Generate coordinates from seed
-            seed = cyrb128(seedInput);
-            
-            // Calculate X and Y coordinates from seed hash
-            const coordX = Math.round(seed[1] / (144 * 4 * 2));
-            const coordY = Math.round(-seed[0] / (160 * 4 * 2));
-            
-            // Create URL path from coordinates
-            const telePath = `${coordX}/${coordY}`;
-            
-            // Navigate to full URL with teleportation path
-            window.location.href = baseDomain + telePath;
-            
-            // Also teleport in the current world instance
-            w.doGoToCoord(coordX, coordY);
-        }
-    }
+    // X and Y coordinates are rounded to the nearest integer cell using Math.round()
+    w.doGoToCoord(
+        Math.round(seed[1] / (144 * 4 * 2)), 
+        Math.round(-seed[0] / (160 * 4 * 2))
+    );
 }));
-
-// Alternative: Generate shareable teleportation links
-function generateTeleportLink(seed) {
-    const baseDomain = "https://brejeira21.github.io/brailleoctant.com/";
-    const seedHash = cyrb128(seed);
-    const coordX = Math.round(seedHash[1] / (144 * 4 * 2));
-    const coordY = Math.round(-seedHash[0] / (160 * 4 * 2));
-    return baseDomain + coordX + "/" + coordY;
-}
-
-// Generate link from input
-function getTeleportURL(seed) {
-    return generateTeleportLink(seed);
-}
 </script>
 <script>
 javascript:(function() {
