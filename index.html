@@ -11056,23 +11056,39 @@ javascript:(function() {
     // 2. Backup original color from local storage
     const originalColor = localStorage.getItem("color") || "#000000";
 
-    // 3. Text Color Modification Handler
-    function rainbowOnInput() {
+    // 3. Main Rainbow Update Hook
+    function updateRainbowColor() {
         if (!isRainbowActive) return;
         hue = (hue + hueSpeed) % 360;
         if (typeof YourWorld !== 'undefined' && YourWorld.Color !== undefined) {
+            // Converts HSL to YourWorld's integer color format via resolveColorValue
             YourWorld.Color = resolveColorValue(`hsl(${hue}, 100%, 50%)`);
         }
     }
 
-    // 4. Create Bottom-Right HUD Container
+    // 4. Intercept the writeChar function to cycle colors on text input
+    if (typeof writeChar !== 'undefined' && !window._rainbowWriteCharHooked) {
+        const _writeChar = writeChar;
+        writeChar = function(c, a) {
+            updateRainbowColor();
+            _writeChar(c, a);
+        };
+        window._rainbowWriteCharHooked = true; // Prevent duplicate hooks
+    }
+
+    // 5. Fallback event listener for general input elements
+    window.addEventListener("input", function() {
+        if (isRainbowActive) updateRainbowColor();
+    }, true);
+
+    // 6. Create Bottom-Right HUD Container
     let hudContainer = document.createElement("div");
     hudContainer.id = "rainbow-hud-bottomright";
     hudContainer.style.position = "fixed";
-    hudContainer.style.bottom = "20px";       // Positioned relative to the bottom
-    hudContainer.style.right = "20px";        // Positioned relative to the right
-    hudContainer.style.top = "auto";          // Cleared top positioning
-    hudContainer.style.left = "auto";         // Cleared left positioning
+    hudContainer.style.bottom = "20px";
+    hudContainer.style.right = "20px";
+    hudContainer.style.top = "auto";
+    hudContainer.style.left = "auto";
     hudContainer.style.zIndex = "9999";
     hudContainer.style.backgroundColor = "rgba(0, 0, 0, 0.75)";
     hudContainer.style.padding = "8px 12px";
@@ -11086,7 +11102,7 @@ javascript:(function() {
     hudContainer.style.gap = "6px";
     hudContainer.style.userSelect = "none";
 
-    // 5. Build "Rainbow Text" Checkbox Row
+    // 7. Build "Rainbow Text" Checkbox Row
     let checkboxRow = document.createElement("label");
     checkboxRow.style.display = "flex";
     checkboxRow.style.alignItems = "center";
@@ -11099,10 +11115,8 @@ javascript:(function() {
     checkbox.onclick = function() {
         if (this.checked) {
             isRainbowActive = true;
-            window.addEventListener("input", rainbowOnInput, true);
         } else {
             isRainbowActive = false;
-            window.removeEventListener("input", rainbowOnInput, true);
             if (typeof YourWorld !== 'undefined') {
                 YourWorld.Color = resolveColorValue(originalColor);
             }
@@ -11116,7 +11130,7 @@ javascript:(function() {
     checkboxRow.appendChild(checkboxLabel);
     hudContainer.appendChild(checkboxRow);
 
-    // 6. Build "Hue Speed" Row with Textarea
+    // 8. Build "Hue Speed" Row with Textarea
     let inputRow = document.createElement("div");
     inputRow.style.display = "flex";
     inputRow.style.justifyContent = "space-between";
@@ -11161,7 +11175,7 @@ javascript:(function() {
     // Inject HUD into the main page
     document.body.appendChild(hudContainer);
 
-    // 7. Force/Keep Native Menu Top Right 
+    // 9. Force/Keep Native Menu Top Right 
     let nativeMenu = document.getElementById("menu") || document.querySelector(".menu");
     if (nativeMenu) {
         nativeMenu.style.position = "fixed";
@@ -11171,7 +11185,6 @@ javascript:(function() {
         nativeMenu.style.bottom = "auto";
     }
 })();
-void(0);
 </script>
 <script>
 nav.style.top = "26px";
