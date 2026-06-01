@@ -431,9 +431,6 @@
 		#owot {
 			background-repeat: repeat;
 		}
-		#owot.nightmode {
-			background-image: url("https://halohash.github.io/worldofhash/static/unloaded_night.png");
-		}
 		#zoombar {
 			width: 100%;
 		}
@@ -11251,6 +11248,9 @@ input, button {
 }
 #area_results, #confirm_js, #confirm_js_code, #confirm_js_cancel, #confirm_js_cancel_x, #confirm_js_msg, #confirm_js_cancel:hover, #run_js_confirm, #confirm_js_copy, #text_decorations, .text_deco_btn, #text_deco_b, #text_deco_i, #text_deco_u, #text_deco_s {
     font-family: "Braille Octant Mono 2.4";
+}
+#owot {
+    background-color: #dddddd;
 }`;
 document.body.appendChild(twstyle);
 [...document.getElementsByClassName("chat_tab_button")].forEach(e=>{e.style.minWidth = ""; e.firstChild.textContent = e.firstChild.textContent.replaceAll(" ", "")});
