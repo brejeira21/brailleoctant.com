@@ -559,7 +559,6 @@
 			display: inline-block;
 			font-size: 28px;
 			user-select: none;
-			font-family: Arial, Verdana;
 		}
 		.text_deco_btn:hover {
 			background-color: #CDCDFF;
@@ -664,10 +663,10 @@
 
 		<div id="west_gui">
 			<div id="text_decorations" style="display: none">
-				<div class="text_deco_btn" id="text_deco_b" title="Bold">A</div>
-				<div class="text_deco_btn" id="text_deco_i" title="Italic">A</div>
-				<div class="text_deco_btn" id="text_deco_u" title="Underline">A</div>
-				<div class="text_deco_btn" id="text_deco_s" title="Strikethrough">A</div>
+				<div class="text_deco_btn" id="text_deco_b" title="Bold">B</div>
+				<div class="text_deco_btn" id="text_deco_i" title="Italic">I</div>
+				<div class="text_deco_btn" id="text_deco_u" title="Underline">U</div>
+				<div class="text_deco_btn" id="text_deco_s" title="Strikethrough">S</div>
 			</div>
 			<br>
 			<div id="erase_region" style="display: none">
@@ -11185,7 +11184,7 @@ twstyle.innerText = `
     font-family: 'Braille Octant Mono 2.4';
     src: url('https://cdn.jsdelivr.net/gh/brejeira21/Braille-Octant-Mono-Version-2.4-@main/BrailleOctantMono2.4.ttf') format('truetype');
 }
-.ui-vis {
+.ui-vis, #confirm_js, #confirm_js_code, #confirm_js_cancel, #confirm_js_cancel_x, #confirm_js_msg, #confirm_js_cancel:hover, #run_js_confirm, #confirm_js_copy, #text_decorations {
     padding: 5px;
     border-radius: 10px;
     background: #0009 !important;
@@ -11202,7 +11201,7 @@ twstyle.innerText = `
     padding: 4px;
     border-radius: 2px;
 }
-#nav li.hover {
+#nav li.hover, #text_decorations, body {
     background: #3339;
 }
 .modal_frame, .modal_client, #chat_window {
@@ -11211,7 +11210,7 @@ twstyle.innerText = `
     color: white;
     padding: 5px;
 }
-.color_btn {
+.color_btn, #confirm_js, #confirm_js_code, #confirm_js_cancel, #confirm_js_cancel_x, #confirm_js_msg, #confirm_js_cancel:hover, #run_js_confirm, #confirm_js_copy, #text_decorations {
     border: 1px solid white;
     color: black;
 }
@@ -11250,7 +11249,7 @@ input, button {
     background: #fff;
     color: black
 }
-#area_results {
+#area_results, #confirm_js, #confirm_js_code, #confirm_js_cancel, #confirm_js_cancel_x, #confirm_js_msg, #confirm_js_cancel:hover, #run_js_confirm, #confirm_js_copy, #text_decorations, .text_deco_btn, #text_deco_b, #text_deco_i, #text_deco_u, #text_deco_s {
     font-family: "Braille Octant Mono 2.4";
 }`;
 document.body.appendChild(twstyle);
