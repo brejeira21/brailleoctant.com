@@ -742,12 +742,13 @@
 		<script src="https://halohash.github.io/worldofhash/static/yw/javascript/modals.js"></script>
 		<script src="https://halohash.github.io/worldofhash/static/yw/javascript/menu.js"></script>
 		<script src="https://halohash.github.io/worldofhash/static/yw/javascript/permissions.js"></script>
+		<script src="https://halohash.github.io/worldofhash/static/yw/javascript/owot.js"></script>
 		<script src="https://halohash.github.io/worldofhash/static/yw/javascript/chat.js"></script>
 		<script src="https://halohash.github.io/worldofhash/static/yw/javascript/renderer.js"></script>
 	</body>
 </html>
 <script>
-  var YourWorld = {
+var YourWorld = {
 	Color: window.localStorage ? +localStorage.getItem("color") : 0,
 	BgColor: -1,
 	Nickname: state.userModel.username
@@ -757,7 +758,6 @@ var owot, owotCtx, textInput;
 var linkElm, linkDiv;
 var colorInput, colorInputBg;
 var colorShortcuts, colorShortcutsBg;
-var colorPaletteCont, bgColorPaletteCont;
 function init_dom() {
 	owot = document.getElementById("owot");
 	owot.style.display = "block";
@@ -836,8 +836,6 @@ var disconnectTimeout      = null;
 var menuOptions            = {};
 var undoBuffer             = new CircularBuffer(2048);
 var compositionBuffer      = ""; // composition buffer for Android-based keyboards
-var pasteEventPending      = false;
-var compositionDotFix      = false;
 var compositionSuppress    = false;
 var textInputPasteMod      = false;
 var textInputPasteData     = null;
@@ -1036,7 +1034,6 @@ defineElements({ // elm[<name>]
 	confirm_js: byId("confirm_js"),
 	confirm_js_msg: byId("confirm_js_msg"),
 	confirm_js_code: byId("confirm_js_code"),
-	confirm_js_copy: byId("confirm_js_copy"),
 	main_view: byId("main_view"),
 	usr_online: byId("usr_online"),
 	link_element: byId("link_element"),
@@ -1160,7 +1157,8 @@ function addColorShortcuts() {
 	colorShortcuts.appendChild(rand);
 
 	var bgNone = document.createElement("span");
-	bgNone.className = "color_btn color_btn_no_cell";
+	bgNone.id = "color_btn_no_cell";
+	bgNone.className = "color_btn";
 	bgNone.style.backgroundColor = "#FFFFFF";
 	bgNone.title = "No background color";
 	bgNone.onclick = function() {
@@ -2699,7 +2697,6 @@ function renderCursor(coords) {
 	var newTileY = coords[1];
 	var tile = Tile.get(newTileX, newTileY);
 	if(!tile) return false;
-	if(window.dcm || window.dcnn) return false; // TEMP
 	var writability = tile.properties.writability;
 	var thisTile = {
 		writability: writability,
@@ -3245,10 +3242,18 @@ function writeChar(char, doNotMoveCursor, color, noNewline, undoCursorOffset, bg
 		}
 	}
 	if(!newLine && !skipChar) {
-		var data = {char, color: charColor, bgColor: charBgColor, tileX, tileY, charX, charY, bold: dB, italic: dI, underline: dU, strikethrough: dS};
+		var data = {
+			char: char,
+			color: charColor,
+			bgColor: charBgColor,
+			tileX: tileX,
+			tileY: tileY,
+			charX: charX,
+			charY: charY
+		};
 
 		w.emit("writeBefore", data);
-		writeCharTo(data.char, data.color, data.tileX, data.tileY, data.charX, data.charY, 0, undoCursorOffset, data.bgColor, data.bold, data.italic, data.underline, data.strikethrough);
+		writeCharTo(data.char, data.color, data.tileX, data.tileY, data.charX, data.charY, 0, undoCursorOffset, data.bgColor, dB, dI, dU, dS);
 		w.emit("write", data);
 	}
 }
@@ -3579,20 +3584,16 @@ function event_input(e) {
 	if(state.worldModel.char_rate[0] == 0 && !state.userModel.is_member) return;
 	var inputType = e.inputType;
 	var inputData = e.data;
-	var textareaValue = elm.textInput.value.replace(/\x7F/g, "");
-	if(!pasteEventPending && compositionDotFix && textareaValue.charAt(0) == ".") {
-		textareaValue = textareaValue.slice(1);
-	}
-	pasteEventPending = false;
-	compositionDotFix = false;
+	var textareaValue = elm.textInput.value;
 	if(!inputType && !inputData) { // backwards compatability: use the textInput data instead
+		var data = elm.textInput.value.replace(/\x7F/g, "");
 		elm.textInput.value = "";
-		if(!textareaValue || textareaValue == "\n" || textareaValue == "\r") return;
-		textareaValue = textareaValue;
-		if(w.split(textareaValue).length > 1) {
+		if(!data || data == "\n" || data == "\r") return;
+		textareaValue = data;
+		if(w.split(data).length > 1) {
 			inputType = "insertFromPaste";
 		} else {
-			inputData = textareaValue;
+			inputData = data;
 		}
 	}
 	if(inputType == "insertFromPaste") {
@@ -3647,7 +3648,6 @@ function event_input(e) {
 		// workaround: disable dot after double-typing spaces on Android
 		// don't use this workaround if using textInput value fallback
 		if(inputData == " " && inputType) {
-			compositionDotFix = true;
 			elm.textInput.value = ".";
 			return;
 		}
@@ -3668,7 +3668,6 @@ function setupInputSystem() {
 
 	elm.textInput.addEventListener("paste", function(e) {
 		// reset all the gunk added by the browser.
-		pasteEventPending = true;
 		elm.textInput.value = "";
 	});
 
@@ -3944,10 +3943,6 @@ function event_keydown(e) {
 		elm.textInput.value = "";
 		writeChar("\n");
 	}
-	if(checkKeyPress(e, "CTRL+SPACE")) {
-		elm.textInput.value = "";
-		writeChar(" ");
-	}
 	if(checkKeyPress(e, "SHIFT+ENTER")) {
 		elm.textInput.value = "";
 		writeChar("\n");
@@ -4007,18 +4002,11 @@ function alertJS(data, restrict) {
 			closeJSAlert();
 			return false;
 		}
-		elm.confirm_js_copy.style.display = "none";
 	} else {
 		elm.confirm_js_msg.innerHTML = "Are you sure you want to run this javascript link?<br>Press Close to <i>not</i> run it.";
 		run_js_confirm.innerText = "run";
 		run_js_confirm.onclick = function() {
 			confirmRunJSLink(data);
-			return false;
-		}
-		elm.confirm_js_copy.style.display = "";
-		elm.confirm_js_copy.onclick = function() {
-			w.clipboard.copy(data);
-			closeJSAlert();
 			return false;
 		}
 	}
@@ -4200,10 +4188,16 @@ function parseClientCommandArgs(string) {
 	return result;
 }
 
-var actions = {
-	night: (args, coords) => w.night(),
-	day: (args, coords) => w.day(),
-	theme: (args, coords) => {
+function runClientCommand(string, coords) {
+	if(typeof string != "string") return;
+	var query = string.split(/\s(.+)$/g, 2);
+	var command = query[0].toLowerCase();
+	var args = parseClientCommandArgs(query[1]);
+	if(command == "night") {
+		w.night();
+	} else if(command == "day") {
+		w.day();
+	} else if(command == "theme") {
 		var charInfo = getCharInfo(coords[0], coords[1], coords[2], coords[3]);
 		var restrict = state.worldModel.name == "" && charInfo.protection == 0;
 		if(restrict) {
@@ -4225,8 +4219,7 @@ var actions = {
 		checkTextColorOverride();
 		w.redraw();
 		menu_color(styles.menu);
-	},
-	copy: (args, coords) => {
+	} else if(command == "copy") {
 		if(args.char) {
 			w.clipboard.copy(w.split(args.char)[0]);
 		} else {
@@ -4234,17 +4227,8 @@ var actions = {
 			w.clipboard.copy(char);
 			highlight([coords], true, [0, 255, 0]);
 		}
-	},
-	deco: (args, coords) => toggleTextDecoBar()
-};
-
-function runClientCommand(string, coords) {
-	if(typeof string != "string") return;
-	var query = string.split(/\s(.+)$/g, 2);
-	var command = query[0].toLowerCase();
-	var args = parseClientCommandArgs(query[1]);
-	if(actions.hasOwnProperty(command)) {
-		actions[command](args, coords);
+	} else if(command == "deco") {
+		toggleTextDecoBar();
 	}
 }
 
@@ -4300,9 +4284,8 @@ function setupLinkElement() {
 	}
 	linkElm.onauxclick = function(e) {
 		if(e.which == 2) {
-			var noMiddleClick = ["javascript", "com", "comu", "action"];
 			var prot = linkParams.protocol;
-			if(noMiddleClick.includes(prot)) {
+			if(prot == "javascript") {
 				e.preventDefault();
 				return false;
 			}
@@ -4725,8 +4708,9 @@ function touch_pagePos(e) {
 function event_wheel(e) {
 	if(Modal.isOpen) return;
 	if(!scrollingEnabled) return; // return if disabled
-	// if not focused on canvas, don't scroll world
-	if(!closest(e.target, elm.main_view) && !closest(e.target, elm.link_div)) return;
+	// if focused on chat, don't scroll world
+	if(closest(e.target, getChatfield())) return;
+	if(closest(e.target, elm.confirm_js)) return;
 	if(e.ctrlKey) return; // don't scroll if ctrl is down (zooming)
 	var deltaX = Math.trunc(e.deltaX);
 	var deltaY = Math.trunc(e.deltaY);
@@ -5917,10 +5901,10 @@ function buildMenu() {
 	w.menu = menu;
 	var homeLink = document.createElement("a");
 	var homeLinkIcon = document.createElement("img");
-	homeLink.href = "https://brejeira21.github.io/brailleoctant.com/home.html";
+	homeLink.href = "/home";
 	homeLink.target = "_blank";
 	homeLink.innerHTML = "More...&nbsp";
-	homeLinkIcon.src = "https://halohash.github.io/worldofhash/static/link.svg";
+	homeLinkIcon.src = "/static/link.svg";
 	homeLinkIcon.style.width = "12px";
 	homeLinkIcon.style.height = "12px";
 	homeLink.appendChild(homeLinkIcon);
@@ -5934,16 +5918,16 @@ function buildMenu() {
 	menuOptions.goToCoords = menu.addOption("Go to coordinates", w.goToCoord);
 	menuOptions.coordLink = menu.addOption("Create link to coordinates", w.coordLink);
 	menuOptions.urlLink = menu.addOption("Create link to URL", w.urlLink);
-	menuOptions.ownerArea = menu.addOption("Protect owner-only", function() {
+	menuOptions.ownerArea = menu.addOption("Make an area owner-only", function() {
 		return w.doProtect("owner-only");
 	});
-	menuOptions.memberArea = menu.addOption("Protect member-only", function() {
+	menuOptions.memberArea = menu.addOption("Make an area member-only", function() {
 		return w.doProtect("member-only");
 	});
-	menuOptions.publicArea = menu.addOption("Protect public", function() {
+	menuOptions.publicArea = menu.addOption("Make an area public", function() {
 		return w.doProtect("public");
 	});
-	menuOptions.resetArea = menu.addOption("Protect protection", w.doUnprotect);
+	menuOptions.resetArea = menu.addOption("Default area protection", w.doUnprotect);
 	menuOptions.eraseArea = menu.addOption("Erase an area", startEraseUI);
 
 	menuOptions.grid = menu.addCheckboxOption("Toggle grid", function() {
@@ -5992,7 +5976,7 @@ function buildMenu() {
 	zoomBar.oninput = function() {
 		var val = this.value;
 		val /= 100;
-		if(val < 0 || val > 0.1) val = 0.2;
+		if(val < 0 || val > 1) val = 0.5;
 		val = toLogZoom(val);
 		changeZoom(val * 100);
 	}
@@ -6002,7 +5986,7 @@ function buildMenu() {
 	zoomBar.title = "Zoom";
 	zoomBar.type = "range";
 	zoomBar.value = 50;
-	zoomBar.min = 0.1;
+	zoomBar.min = 1;
 	zoomBar.max = 100;
 	zoomBar.id = "zoombar";
 	var zoombarId = menu.addEntry(zoomBar);
@@ -7573,7 +7557,7 @@ Object.assign(w, {
 	fixFonts: function(mainType) {
 		if(!window.Promise || !window.FontFace) return;
 		var list = {
-			"legacycomputing": "url('./static/font/legacycomputing.woff2')"
+			"legacycomputing": "url('/static/font/legacycomputing.woff2')"
 		};
 		if(mainType) { // load just one specific type
 			for(var i in list) {
@@ -7978,11 +7962,11 @@ function buildBackgroundColorModal(modal) {
 	modal.onTabChange(function(evt) {
 		var tab = evt.id;
 		if(tab == "bg") {
-			if(!Permissions.has_text_color_palette(state.userModel, state.worldModel)) colorShortcutsBg.style.display = "";
+			colorShortcutsBg.style.display = "";
 			colorShortcuts.style.display = "none";
 		} else if(tab == "fg") {
 			colorShortcutsBg.style.display = "none";
-			if(!Permissions.has_cell_color_palette(state.userModel, state.worldModel)) colorShortcuts.style.display = "";
+			colorShortcuts.style.display = "";
 		}
 	});
 }
@@ -8013,7 +7997,6 @@ function resetColorModalVisibility() {
 function makeColorModal() {
 	var modal = new Modal();
 	modal.setMinimumSize(290, 128);
-	modal.setMaximumSize(800);
 	modal.createForm();
 	modal.setFormTitle("\n");
 	colorInput = modal.addEntry("Text color", "color").input;
@@ -8073,80 +8056,6 @@ function makeColorModal() {
 		modal.hideTab("fg");
 	}
 	w.ui.colorModal = modal;
-}
-
-function generateColorPaletteButtons(palette, isBg) {
-	let cont = document.createElement("div");
-	for(let i = 0; i < palette.length; i++) {
-		let elm = createColorButton(palette[i], isBg);
-		elm.style.width = "32px";
-		elm.style.height = "32px";
-		elm.style.borderRadius = "8px";
-		cont.appendChild(elm);
-	}
-	if(isBg) {
-		let bgNone = document.createElement("span");
-		bgNone.className = "color_btn color_btn_no_cell";
-		bgNone.style.backgroundColor = "#FFFFFF";
-		bgNone.title = "No background color";
-		bgNone.onclick = function() {
-			w.ui.colorModal.close(true); // close + cancel
-			disableBgColorPicker();
-			YourWorld.BgColor = -1;
-		}
-		bgNone.style.width = "32px";
-		bgNone.style.height = "32px";
-		bgNone.style.borderRadius = "8px";
-		cont.appendChild(bgNone);
-	}
-	return cont;
-}
-
-function updateColorModalPalette() {
-	let currentTab = w.ui.colorModal.currentTabCtx?.id;
-	if(Permissions.has_text_color_palette(state.userModel, state.worldModel)) {
-		if(w.ui.colorModal.tabIndex["fg"]) {
-			w.ui.colorModal.focusTab("fg");
-		}
-		colorShortcuts.style.display = "none";
-		w.ui.colorModal.hideForm();
-		if(colorPaletteCont) {
-			colorPaletteCont.remove();
-			colorPaletteCont = null;
-		}
-		colorPaletteCont = generateColorPaletteButtons(state.worldModel.color_palette);
-		w.ui.colorModal.appendContent(colorPaletteCont);
-	} else {
-		if(w.ui.colorModal.tabIndex["fg"]) {
-			w.ui.colorModal.focusTab("fg");
-		}
-		w.ui.colorModal.showForm();
-		if(colorPaletteCont) {
-			colorPaletteCont.style.display = "none";
-		}
-	}
-	if(w.ui.colorModal.tabIndex["bg"]) {
-		if(Permissions.has_cell_color_palette(state.userModel, state.worldModel)) {
-			w.ui.colorModal.focusTab("bg");
-			colorShortcutsBg.style.display = "none";
-			w.ui.colorModal.hideForm();
-			if(bgColorPaletteCont) {
-				bgColorPaletteCont.remove();
-				bgColorPaletteCont = null;
-			}
-			bgColorPaletteCont = generateColorPaletteButtons(state.worldModel.bg_color_palette, true);
-			w.ui.colorModal.appendContent(bgColorPaletteCont);
-		} else {
-			w.ui.colorModal.focusTab("bg");
-			w.ui.colorModal.showForm();
-			if(bgColorPaletteCont) {
-				bgColorPaletteCont.style.display = "none";
-			}
-		}
-	}
-	if(currentTab) {
-		w.ui.colorModal.focusTab(currentTab);
-	}
 }
 
 function makeSelectionModal() {
@@ -8418,7 +8327,6 @@ function reapplyProperties(props) {
 
 	updateScaleConsts();
 	resetColorModalVisibility();
-	updateColorModalPalette();
 	updateMenuEntryVisiblity();
 	updateWorldName();
 
@@ -8706,7 +8614,6 @@ var ws_functions = {
 	propUpdate: function(data) {
 		w.emit("propUpdate", data.props);
 		var props = data.props;
-		var paletteUpdated = false;
 		for(var p = 0; p < props.length; p++) {
 			var prop = props[p];
 			var type = prop.type;
@@ -8743,12 +8650,10 @@ var ws_functions = {
 				case "colorText":
 					state.worldModel.color_text = value;
 					resetColorModalVisibility();
-					updateColorModalPalette();
 					break;
 				case "colorCell":
 					state.worldModel.color_cell = value;
 					resetColorModalVisibility();
-					updateColorModalPalette();
 					break;
 				case "quickErase":
 					state.worldModel.quick_erase = value;
@@ -8774,20 +8679,9 @@ var ws_functions = {
 				case "writeInt":
 					w.setFlushInterval(value);
 					break;
-				case "colorPalette":
-					state.worldModel.color_palette = value;
-					paletteUpdated = true;
-					break;
-				case "bgColorPalette":
-					state.worldModel.bg_color_palette = value;
-					paletteUpdated = true;
-					break;
 			}
 		}
 		updateMenuEntryVisiblity();
-		if(paletteUpdated) {
-			updateColorModalPalette();
-		}
 	},
 	chat: function(data) {
 		var type = chatType(data.registered, data.nickname, data.realUsername);
@@ -8940,9 +8834,6 @@ function begin() {
 	makeSelectionModal();
 	addColorShortcuts();
 	updateColorPicker();
-	if(Permissions.has_color_palette(state.userModel, state.worldModel)) {
-		updateColorModalPalette();
-	}
 
 	if(state.worldModel.square_chars) defaultSizes.cellW = 18;
 	if(state.worldModel.half_chars) defaultSizes.cellH = 20;
@@ -8987,7 +8878,7 @@ function begin() {
 	protectPrecisionOption(protectPrecision);
 
 	if(state.userModel.is_superuser) {
-		w.loadScript("https://halohash.github.io/worldofhash/static/yw/javascript/world_tools.js");
+		w.loadScript("/static/yw/javascript/world_tools.js");
 	}
 	
 	if(state.worldModel.default_script_path && window.URL) {
@@ -9026,6 +8917,7 @@ function begin() {
 }
 
 begin();
+
 
 </script>
 <script>
@@ -11027,164 +10919,6 @@ menu.addOption("Seed Teleport", (t => {
         Math.round(-seed[0] / (160 * 4 * 2))
     );
 }));
-</script>
-<script>
-javascript:(function() {
-    // ==========================================
-    // 0. Inject Custom Font (Braille Octant Mono 2.4)
-    // ==========================================
-    const fontId = "braille-octant-mono-style";
-    if (!document.getElementById(fontId)) {
-        let styleEl = document.createElement("style");
-        styleEl.id = fontId;
-        styleEl.appendChild(document.createTextNode(`
-            @font-face {
-                font-family: 'Braille Octant Mono 2.4';
-                src: url('https://cdn.jsdelivr.net/gh/brejeira21/Braille-Octant-Mono-Version-2.4-@main/BrailleOctantMono2.4.ttf') format('truetype');
-                font-weight: normal;
-                font-style: normal;
-            }
-        `));
-        document.head.appendChild(styleEl);
-    }
-
-    // 1. Core Variables & State
-    let hue = 0;
-    let hueSpeed = 30.0; // Supports floating-point decimals
-    let isRainbowActive = false;
-
-    // 2. Backup original color from local storage
-    const originalColor = localStorage.getItem("color") || "#000000";
-
-    // 3. Main Rainbow Update Hook
-    function updateRainbowColor() {
-        if (!isRainbowActive) return;
-        hue = (hue + hueSpeed) % 360;
-        if (typeof YourWorld !== 'undefined' && YourWorld.Color !== undefined) {
-            // Converts HSL to YourWorld's integer color format via resolveColorValue
-            YourWorld.Color = resolveColorValue(`hsl(${hue}, 100%, 50%)`);
-        }
-    }
-
-    // 4. Intercept the writeChar function to cycle colors on text input
-    if (typeof writeChar !== 'undefined' && !window._rainbowWriteCharHooked) {
-        const _writeChar = writeChar;
-        writeChar = function(c, a) {
-            updateRainbowColor();
-            _writeChar(c, a);
-        };
-        window._rainbowWriteCharHooked = true; // Prevent duplicate hooks
-    }
-
-    // 5. Fallback event listener for general input elements
-    window.addEventListener("input", function() {
-        if (isRainbowActive) updateRainbowColor();
-    }, true);
-
-    // 6. Create Bottom-Right HUD Container
-    let hudContainer = document.createElement("div");
-    hudContainer.id = "rainbow-hud-bottomright";
-    hudContainer.style.position = "fixed";
-    hudContainer.style.bottom = "20px";
-    hudContainer.style.right = "20px";
-    hudContainer.style.top = "auto";
-    hudContainer.style.left = "auto";
-    hudContainer.style.zIndex = "9999";
-    hudContainer.style.backgroundColor = "rgba(0, 0, 0, 0.75)";
-    hudContainer.style.padding = "8px 12px";
-    hudContainer.style.borderRadius = "4px";
-    hudContainer.style.fontFamily = "'Braille Octant Mono 2.4', monospace, sans-serif";
-    hudContainer.style.fontSize = "13px";
-    hudContainer.style.color = "#ffffff";
-    hudContainer.style.boxShadow = "0px 2px 5px rgba(0,0,0,0.5)";
-    hudContainer.style.display = "flex";
-    hudContainer.style.flexDirection = "column";
-    hudContainer.style.gap = "6px";
-    hudContainer.style.userSelect = "none";
-
-    // 7. Build "Rainbow Text" Checkbox Row
-    let checkboxRow = document.createElement("label");
-    checkboxRow.style.display = "flex";
-    checkboxRow.style.alignItems = "center";
-    checkboxRow.style.gap = "8px";
-    checkboxRow.style.cursor = "pointer";
-
-    let checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.style.cursor = "pointer";
-    checkbox.onclick = function() {
-        if (this.checked) {
-            isRainbowActive = true;
-        } else {
-            isRainbowActive = false;
-            if (typeof YourWorld !== 'undefined') {
-                YourWorld.Color = resolveColorValue(originalColor);
-            }
-        }
-    };
-
-    let checkboxLabel = document.createElement("span");
-    checkboxLabel.innerText = "Rainbow Text";
-
-    checkboxRow.appendChild(checkbox);
-    checkboxRow.appendChild(checkboxLabel);
-    hudContainer.appendChild(checkboxRow);
-
-    // 8. Build "Hue Speed" Row with Textarea
-    let inputRow = document.createElement("div");
-    inputRow.style.display = "flex";
-    inputRow.style.justifyContent = "space-between";
-    inputRow.style.alignItems = "flex-start"; 
-    inputRow.style.gap = "12px";
-
-    let inputLabel = document.createElement("span");
-    inputLabel.style.marginTop = "4px";
-    inputLabel.innerText = "Speed:";
-
-    let txtInput = document.createElement("textarea");
-    txtInput.value = hueSpeed;
-    txtInput.rows = 1; 
-    
-    txtInput.style.width = "75px";
-    txtInput.style.minWidth = "65px";
-    txtInput.style.height = "18px";
-    txtInput.style.backgroundColor = "#222";
-    txtInput.style.color = "#fff";
-    txtInput.style.border = "1px solid #555";
-    txtInput.style.borderRadius = "3px";
-    txtInput.style.padding = "2px 4px";
-    txtInput.style.fontFamily = "'Braille Octant Mono 2.4', monospace";
-    txtInput.style.fontSize = "12px";
-    txtInput.style.resize = "vertical"; 
-    txtInput.style.overflow = "hidden";
-
-    txtInput.oninput = function() {
-        let cleanedVal = this.value.replace(/[^0-9.]/g, '');
-        let val = parseFloat(cleanedVal);
-        hueSpeed = isNaN(val) ? 0 : val;
-    };
-
-    txtInput.onkeydown = function(e) {
-        e.stopPropagation();
-    };
-
-    inputRow.appendChild(inputLabel);
-    inputRow.appendChild(txtInput);
-    hudContainer.appendChild(inputRow);
-
-    // Inject HUD into the main page
-    document.body.appendChild(hudContainer);
-
-    // 9. Force/Keep Native Menu Top Right 
-    let nativeMenu = document.getElementById("menu") || document.querySelector(".menu");
-    if (nativeMenu) {
-        nativeMenu.style.position = "fixed";
-        nativeMenu.style.top = "0px";
-        nativeMenu.style.right = "0px";
-        nativeMenu.style.left = "auto";
-        nativeMenu.style.bottom = "auto";
-    }
-})();
 </script>
 <script>
 nav.style.top = "26px";
