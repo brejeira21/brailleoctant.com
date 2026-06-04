@@ -11784,7 +11784,7 @@ document.body.appendChild(twstyle);
         ctx.beginPath();
 
         // Loop through the 6 bits of the 2x3 sextant mask
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 4; i++) {
             let cx = i % cols;
             let cy = Math.floor(i / cols);
             
@@ -12005,7 +12005,7 @@ document.body.appendChild(twstyle);
         ctx.beginPath();
 
         // Loop through the 6 bits of the 2x3 sextant mask
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 4; i++) {
             let cx = i % cols;
             let cy = Math.floor(i / cols);
             
@@ -12226,7 +12226,7 @@ document.body.appendChild(twstyle);
         ctx.beginPath();
 
         // Loop through the 6 bits of the 2x3 sextant mask
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 4; i++) {
             let cx = i % cols;
             let cy = Math.floor(i / cols);
             
@@ -12447,7 +12447,7 @@ document.body.appendChild(twstyle);
         ctx.beginPath();
 
         // Loop through the 6 bits of the 2x3 sextant mask
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 4; i++) {
             let cx = i % cols;
             let cy = Math.floor(i / cols);
             
@@ -12668,7 +12668,7 @@ document.body.appendChild(twstyle);
         ctx.beginPath();
 
         // Loop through the 6 bits of the 2x3 sextant mask
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 4; i++) {
             let cx = i % cols;
             let cy = Math.floor(i / cols);
             
@@ -12722,22 +12722,20 @@ document.body.appendChild(twstyle);
         var code = 0;
         // Skips and offsets matching constraints across the structural bounds
         if(charCode >= 0x1C164 && charCode <= 0x1C177) code = charCode - 0x1C164 + 1;
-        if(charCode >= 0x1C178 && charCode <= 0x1C18B) code = charCode - 0x1C164 + 2;
-        if(charCode >= 0x1C18C && charCode <= 0x1C19F) code = charCode - 0x1C164 + 3;
         
         textRender.save();
         textRender.beginPath();
 
-        for(var py = 0; py < 3; py++) {
+        for(var py = 0; py < 2; py++) {
             var idx = py * 2;
             if(code >> idx & 1) {
                 if (code >> idx & 2) {
-                    textRender.rect(x, y + py * (height / 3), width, height / 3);
+                    textRender.rect(x, y + py * (height / 2), width, height / 2);
                 } else {
-                    textRender.rect(x, y + py * (height / 3), width / 2, height / 3);
+                    textRender.rect(x, y + py * (height / 2), width / 2, height / 2);
                 }
             } else if (code >> idx & 2) {
-                textRender.rect(x + (width / 2), y + py * (height / 3), width / 2, height / 3);
+                textRender.rect(x + (width / 2), y + py * (height / 2), width / 2, height / 2);
             }
         }
 
