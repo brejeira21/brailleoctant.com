@@ -13951,3 +13951,1213 @@ document.body.appendChild(twstyle);
 
 })();
 </script>
+<script>
+(function() {
+
+    /* ============================================================
+       1. Core 2x4 Path Renderer with Binary Row Patterns
+       ============================================================ */
+
+    function draw2x4Block(ctx, x, y, width, height, mask) {
+        const rows = 4;
+        const cols = 2;
+        const subW = width / cols;
+        const subH = height / rows;
+
+        // 6x8 Binary Shading Pattern matrices (0 = Empty, 1 = Pattern active)
+        const pattern0 = [
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0]
+        ];
+
+        const pattern1 = [
+            [0,0,0,0,0,0],
+            [0,1,0,1,0,1],
+            [0,0,0,0,0,0],
+            [1,0,1,0,1,0],
+            [0,0,0,0,0,0],
+            [0,1,0,1,0,1]
+        ];
+
+        // Horizontally flipped version of pattern1
+        const pattern1FlipH = [
+            [0,0,0,0,0,0],
+            [1,0,1,0,1,0],
+            [0,0,0,0,0,0],
+            [0,1,0,1,0,1],
+            [0,0,0,0,0,0],
+            [1,0,1,0,1,0]
+        ];
+
+        ctx.save();
+        ctx.beginPath();
+
+        // Loop through the 8 bits of the mask (256 patterns total)
+        for (let i = 0; i < 8; i++) {
+            let cx = i % cols;
+            let cy = Math.floor(i / cols);
+            
+            let cellX = x + (cx * subW);
+            let cellY = y + (cy * subH);
+
+            let pixelW = subW / 6;
+            let pixelH = subH / 6;
+
+            if ((mask >> i) & 1) {
+                // Active bits: apply row-specific patterns
+                for (let py = 0; py < 8; py++) {
+                    // Row mapping:
+                    // cy=0 (rows 0-1): use normal pattern1
+                    // cy=1 (rows 2-3): use pattern1FlipH
+                    // cy=2 (rows 4-5): use normal pattern1
+                    // cy=3 (rows 6-7): use pattern1FlipH
+                    let usePattern = (cy === 1 || cy === 3) ? pattern1FlipH : pattern1;
+                    
+                    for (let px = 0; px < 6; px++) {
+                        if (usePattern[py] && usePattern[py][px] === 1) {
+                            ctx.rect(
+                                cellX + (px * pixelW), 
+                                cellY + (py * pixelH), 
+                                pixelW, 
+                                pixelH
+                            );
+                        }
+                    }
+                }
+            } else {
+                // Blank spaces (0 bits) draw pattern0
+                for (let py = 0; py < 8; py++) {
+                    for (let px = 0; px < 6; px++) {
+                        if (pattern0[py] && pattern0[py][px] === 1) {
+                            ctx.rect(
+                                cellX + (px * pixelW), 
+                                cellY + (py * pixelH), 
+                                pixelW, 
+                                pixelH
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    /* ============================================================
+       2. Alternative Row Pattern Renderer
+       ============================================================ */
+
+    function draw2x4BlockAlternate(ctx, x, y, width, height, mask) {
+        const rows = 4;
+        const cols = 2;
+        const subW = width / cols;
+        const subH = height / rows;
+
+        const pattern0 = [
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0]
+        ];
+
+        const pattern1 = [
+            [0,0,0,0,0,0],
+            [0,1,0,1,0,1],
+            [0,0,0,0,0,0],
+            [1,0,1,0,1,0],
+            [0,0,0,0,0,0],
+            [0,1,0,1,0,1]
+        ];
+
+        const pattern1FlipH = [
+            [0,0,0,0,0,0],
+            [1,0,1,0,1,0],
+            [0,0,0,0,0,0],
+            [0,1,0,1,0,1],
+            [0,0,0,0,0,0],
+            [1,0,1,0,1,0]
+        ];
+
+        ctx.save();
+        ctx.beginPath();
+
+        for (let i = 0; i < 8; i++) {
+            let cx = i % cols;
+            let cy = Math.floor(i / cols);
+            
+            let cellX = x + (cx * subW);
+            let cellY = y + (cy * subH);
+
+            let pixelW = subW / 6;
+            let pixelH = subH / 8;
+
+            if ((mask >> i) & 1) {
+                // Use different row patterns based on cy position
+                for (let py = 0; py < 8; py++) {
+                    let usePattern = pattern1;
+                    if (cy === 1) usePattern = pattern1FlipH;  // Row 1: flip
+                    else if (cy === 3) usePattern = pattern1FlipH;  // Row 3: flip
+                    
+                    for (let px = 0; px < 6; px++) {
+                        if (usePattern[py] && usePattern[py][px] === 1) {
+                            ctx.rect(
+                                cellX + (px * pixelW), 
+                                cellY + (py * pixelH), 
+                                pixelW, 
+                                pixelH
+                            );
+                        }
+                    }
+                }
+            } else {
+                for (let py = 0; py < 8; py++) {
+                    for (let px = 0; px < 6; px++) {
+                        if (pattern0[py] && pattern0[py][px] === 1) {
+                            ctx.rect(
+                                cellX + (px * pixelW), 
+                                cellY + (py * pixelH), 
+                                pixelW, 
+                                pixelH
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    /* ============================================================
+       3. Native Bit-Shift Fallback Geometry Renderer
+       ============================================================ */
+
+    function draw2by4Char(charCode, textRender, x, y, width, height) {
+        var code = 0;
+        // Skips and offsets matching constraints across the structural bounds
+        if(charCode >= 0x1C164 && charCode <= 0x1C177) code = charCode - 0x1C164 + 1;
+        if(charCode >= 0x1C178 && charCode <= 0x1C18B) code = charCode - 0x1C164 + 2;
+        if(charCode >= 0x1C18C && charCode <= 0x1C19F) code = charCode - 0x1C164 + 3;
+        
+        textRender.save();
+        textRender.beginPath();
+
+        for(var py = 0; py < 4; py++) {
+            var idx = py * 2;
+            if(code >> idx & 1) {
+                if (code >> idx & 2) {
+                    textRender.rect(x, y + py * (height / 4), width, height / 4);
+                } else {
+                    textRender.rect(x, y + py * (height / 4), width / 2, height / 4);
+                }
+            } else if (code >> idx & 2) {
+                textRender.rect(x + (width / 2), y + py * (height / 4), width / 2, height / 4);
+            }
+        }
+
+        textRender.closePath();
+        textRender.fill();
+        textRender.restore();
+    }
+
+    /* ============================================================
+       4. Mask Mapping & Filtering Utilities (256 Total Patterns)
+       ============================================================ */
+
+    const START_CHAR = 0x45000;
+    const END_CHAR = 0x450EF;
+    const START_CHAR_2X4 = 0x45000;
+    const END_CHAR_2X4 = 0x450EF;
+
+    // All 256 masks available (0x00 through 0xFF)
+    function getValidMasks() {
+        let masks = [];
+        for (let m = 0x00; m <= 0xFF; m++) {
+            if (m === 0x00 || m === 0x05 || m === 0x0A || m === 0x0F || m === 0x50 || m === 0x55 || m === 0x5A || m === 0x5F || m === 0xA0 || m === 0xA5 || m === 0xAA || m === 0xAF || m === 0xF0 || m === 0xF5 || m === 0xFA || m === 0xFF) continue;
+            masks.push(m);
+        }
+        return masks;
+    }
+
+    const validMasks = getValidMasks();
+
+    function charToMask(char_code) {
+        let index = char_code - START_CHAR;
+        if (index >= 0 && index < validMasks.length) {
+            return validMasks[index];
+        }
+        return null;
+    }
+
+    function charToMask2x4(char_code) {
+        let index = char_code - START_CHAR_2X4;
+        if (index >= 0 && index < validMasks.length) {
+            return validMasks[index];
+        }
+        return null;
+    }
+
+    function maskToChar(mask) {
+        let index = validMasks.indexOf(mask);
+        if (index !== -1) {
+            return START_CHAR + index;
+        }
+        return null;
+    }
+
+    function maskToChar2x4(mask) {
+        let index = validMasks.indexOf(mask);
+        if (index !== -1) {
+            return START_CHAR_2X4 + index;
+        }
+        return null;
+    }
+
+    /* ============================================================
+       5. Patching the drawBlockChar Dispatcher
+       ============================================================ */
+
+    const originalDrawBlockChar = window.drawBlockChar;
+
+    window.drawBlockChar = function(char_code, ctx, x, y, width, height) {
+        // Original 2x3 pattern renderer
+        if (char_code >= START_CHAR && char_code <= END_CHAR) {
+            const mask = charToMask(char_code);
+            if (mask !== null) {
+                draw2x4Block(ctx, x, y, width, height, mask);
+                return;
+            }
+        }
+        // New 2x4 pattern renderer with row-specific flipping
+        if (char_code >= START_CHAR_2X4 && char_code <= END_CHAR_2X4) {
+            const mask = charToMask2x4(char_code);
+            if (mask !== null) {
+                draw2x4Block(ctx, x, y, width, height, mask);
+                return;
+            }
+        }
+        return originalDrawBlockChar.apply(this, arguments);
+    };
+
+    /* ============================================================
+       6. Update Validity Check
+       ============================================================ */
+
+    const originalIsValid = window.isValidSpecialSymbol;
+    window.isValidSpecialSymbol = function(char_code) {
+        if ((char_code >= START_CHAR && char_code <= END_CHAR) ||
+            (char_code >= START_CHAR_2X4 && char_code <= END_CHAR_2X4)) {
+            return true;
+        }
+        return originalIsValid(char_code);
+    };
+
+    /* ============================================================
+       7. Register Chat Commands
+       ============================================================ */
+
+    if (window.w && w.chat && w.chat.registerCommand) {
+        w.chat.registerCommand("b24", function(args) {
+            // Guard against undefined args
+            if (!args || !Array.isArray(args) || args.length === 0) {
+                console.warn("b24 command: No hex argument provided. Usage: /b24 FF");
+                return;
+            }
+
+            let input = args[0];
+            if (!input) {
+                console.warn("b24 command: Empty input");
+                return;
+            }
+
+            let val = parseInt(input, 16);
+            
+            if (!isNaN(val) && val >= 0x00 && val <= 0xFF) {
+                let charCode = maskToChar2x4(val);
+                if (charCode !== null) {
+                    let char = String.fromCodePoint(charCode);
+                    w.typeChar(char);
+                } else {
+                    console.warn("Invalid hex value. Must be 0x00-0xFF");
+                }
+            } 
+        }, ["hex"], "Type 2x4 binary pattern (Row 0: normal, Row 1: flip H, Row 2: normal, Row 3: flip H)", "FE");
+
+        w.chat.registerCommand("b24alt", function(args) {
+            // Guard against undefined args
+            if (!args || !Array.isArray(args) || args.length === 0) {
+                console.warn("b24alt command: No hex argument provided. Usage: /b24alt FF");
+                return;
+            }
+
+            let input = args[0];
+            if (!input) {
+                console.warn("b24alt command: Empty input");
+                return;
+            }
+
+            let val = parseInt(input, 16);
+            
+            if (!isNaN(val) && val >= 0x00 && val <= 0xFF) {
+                let charCode = maskToChar2x4(val);
+                if (charCode !== null) {
+                    let char = String.fromCodePoint(charCode);
+                    w.typeChar(char);
+                } else {
+                    console.warn("Invalid hex value. Must be 0x00-0xFF");
+                }
+            } 
+        }, ["hex"], "Type 2x4 alternate binary pattern", "FE");
+    }
+
+    // Settings Cleanup and screen refresh
+    if (typeof bufferLargeChars !== 'undefined') {
+        bufferLargeChars = false;
+    }
+    if (window.w && w.redraw) {
+        w.redraw();
+    }
+    
+    console.log("2x4 Binary Patterns (256 patterns) Loaded. Row structure: 0=normal, 1=flip H, 2=normal, 3=flip H. Commands: /b24 [hex] and /b24alt [hex]");
+
+})();
+</script>
+<script>
+(function() {
+
+    /* ============================================================
+       1. Core 2x3 Path Renderer with 6x8 Binary Shading Pattern
+       ============================================================ */
+
+    function draw2x3Block(ctx, x, y, width, height, mask) {
+        const rows = 4;
+        const cols = 2;
+        const subW = width / cols;
+        const subH = height / rows;
+
+        // 6x8 Binary Shading Pattern matrices (0 = Empty, 1 = Pattern active)
+        const pattern0 = [
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0]
+        ];
+
+        const pattern1 = [
+            [0,1,0,1,0,1],
+            [1,0,1,0,1,0],
+            [0,1,0,1,0,1],
+            [1,0,1,0,1,0],
+            [0,1,0,1,0,1],
+            [1,0,1,0,1,0],
+        ];
+
+        ctx.save();
+        ctx.beginPath();
+
+        // Loop through the 8 bits of the mask (256 patterns total)
+        for (let i = 0; i < 8; i++) {
+            let cx = i % cols;
+            let cy = Math.floor(i / cols);
+            
+            let cellX = x + (cx * subW);
+            let cellY = y + (cy * subH);
+
+            let pixelW = subW / 6;
+            let pixelH = subH / 6;
+
+            if ((mask >> i) & 1) {
+                // Active bits draw solid pattern1
+                for (let py = 0; py < 8; py++) {
+                    for (let px = 0; px < 6; px++) {
+                        if (pattern1[py] && pattern1[py][px] === 1) {
+                            ctx.rect(
+                                cellX + (px * pixelW), 
+                                cellY + (py * pixelH), 
+                                pixelW, 
+                                pixelH
+                            );
+                        }
+                    }
+                }
+            } else {
+                // Blank spaces (0 bits) draw pattern0
+                for (let py = 0; py < 8; py++) {
+                    for (let px = 0; px < 6; px++) {
+                        if (pattern0[py] && pattern0[py][px] === 1) {
+                            ctx.rect(
+                                cellX + (px * pixelW), 
+                                cellY + (py * pixelH), 
+                                pixelW, 
+                                pixelH
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    /* ============================================================
+       2. Native Bit-Shift Fallback Geometry Renderer
+       ============================================================ */
+
+    function draw2by3Char(charCode, textRender, x, y, width, height) {
+        var code = 0;
+        // Skips and offsets matching constraints across the structural bounds
+        if(charCode >= 0x1C164 && charCode <= 0x1C177) code = charCode - 0x1C164 + 1;
+        if(charCode >= 0x1C178 && charCode <= 0x1C18B) code = charCode - 0x1C164 + 2;
+        if(charCode >= 0x1C18C && charCode <= 0x1C19F) code = charCode - 0x1C164 + 3;
+        
+        textRender.save();
+        textRender.beginPath();
+
+        for(var py = 0; py < 3; py++) {
+            var idx = py * 2;
+            if(code >> idx & 1) {
+                if (code >> idx & 2) {
+                    textRender.rect(x, y + py * (height / 3), width, height / 3);
+                } else {
+                    textRender.rect(x, y + py * (height / 3), width / 2, height / 3);
+                }
+            } else if (code >> idx & 2) {
+                textRender.rect(x + (width / 2), y + py * (height / 3), width / 2, height / 3);
+            }
+        }
+
+        textRender.closePath();
+        textRender.fill();
+        textRender.restore();
+    }
+
+    /* ============================================================
+       3. Mask Mapping & Filtering Utilities (256 Total Patterns)
+       ============================================================ */
+
+    const START_CHAR = 0x450F0;
+    const END_CHAR = 0x451DF;
+
+    // All 256 masks available (0x00 through 0xFF)
+    function getValidMasks() {
+        let masks = [];
+        for (let m = 0x00; m <= 0xFF; m++) {
+            if (m === 0x00 || m === 0x05 || m === 0x0A || m === 0x0F || m === 0x50 || m === 0x55 || m === 0x5A || m === 0x5F || m === 0xA0 || m === 0xA5 || m === 0xAA || m === 0xAF || m === 0xF0 || m === 0xF5 || m === 0xFA || m === 0xFF) continue;
+            masks.push(m);
+        }
+        return masks;
+    }
+
+    const validMasks = getValidMasks();
+
+    function charToMask(char_code) {
+        let index = char_code - START_CHAR;
+        if (index >= 0 && index < validMasks.length) {
+            return validMasks[index];
+        }
+        return null;
+    }
+
+    function maskToChar(mask) {
+        let index = validMasks.indexOf(mask);
+        if (index !== -1) {
+            return START_CHAR + index;
+        }
+        return null;
+    }
+
+    /* ============================================================
+       4. Patching the drawBlockChar Dispatcher
+       ============================================================ */
+
+    const originalDrawBlockChar = window.drawBlockChar;
+
+    window.drawBlockChar = function(char_code, ctx, x, y, width, height) {
+        if (char_code >= START_CHAR && char_code <= END_CHAR) {
+            const mask = charToMask(char_code);
+            if (mask !== null) {
+                // Renders the primary textured variant
+                draw2x3Block(ctx, x, y, width, height, mask);
+                return;
+            }
+        }
+        return originalDrawBlockChar.apply(this, arguments);
+    };
+
+    /* ============================================================
+       5. Update Validity Check
+       ============================================================ */
+
+    const originalIsValid = window.isValidSpecialSymbol;
+    window.isValidSpecialSymbol = function(char_code) {
+        if (char_code >= START_CHAR && char_code <= END_CHAR) {
+            return true;
+        }
+        return originalIsValid(char_code);
+    };
+
+    /* ============================================================
+       6. Register Chat Command
+       ============================================================ */
+
+    if (window.w && w.chat && w.chat.registerCommand) {
+        w.chat.registerCommand("b23", function(args) {
+            // Guard against undefined args
+            if (!args || !Array.isArray(args) || args.length === 0) {
+                console.warn("b23 command: No hex argument provided. Usage: /b23 FF");
+                return;
+            }
+
+            let input = args[0];
+            if (!input) {
+                console.warn("b23 command: Empty input");
+                return;
+            }
+
+            let val = parseInt(input, 16);
+            
+            if (!isNaN(val) && val >= 0x00 && val <= 0xFF) {
+                let charCode = maskToChar(val);
+                if (charCode !== null) {
+                    let char = String.fromCodePoint(charCode);
+                    w.typeChar(char);
+                } else {
+                console.warn("Invalid hex value. Must be 0x00-0xFF");
+                }
+            } 
+        }, ["hex"], "Type 2x3 sextant pattern (0x00-0xFF)", "FE");
+    }
+
+    // Settings Cleanup and screen refresh
+    if (typeof bufferLargeChars !== 'undefined') {
+        bufferLargeChars = false;
+    }
+    if (window.w && w.redraw) {
+        w.redraw();
+    }
+    
+    console.log("2x3 Sextants (256 patterns) Loaded. All octants available. Full 8-bit shade patterns active.");
+
+})();
+</script>
+<script>
+(function() {
+
+    /* ============================================================
+       1. Core 2x4 Path Renderer with Binary Row Patterns
+       ============================================================ */
+
+    function draw2x4Block(ctx, x, y, width, height, mask) {
+        const rows = 4;
+        const cols = 2;
+        const subW = width / cols;
+        const subH = height / rows;
+
+        // 6x8 Binary Shading Pattern matrices (0 = Empty, 1 = Pattern active)
+        const pattern0 = [
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0]
+        ];
+
+        const pattern1 = [
+            [0,1,0,1,0,1],
+            [1,1,1,1,1,1],
+            [1,0,1,0,1,0],
+            [1,1,1,1,1,1],
+            [0,1,0,1,0,1],
+            [1,1,1,1,1,1]
+        ];
+
+        // Horizontally flipped version of pattern1
+        const pattern1FlipH = [
+            [1,0,1,0,1,0],
+            [1,1,1,1,1,1],
+            [0,1,0,1,0,1],
+            [1,1,1,1,1,1],
+            [1,0,1,0,1,0],
+            [1,1,1,1,1,1]
+        ];
+
+        ctx.save();
+        ctx.beginPath();
+
+        // Loop through the 8 bits of the mask (256 patterns total)
+        for (let i = 0; i < 8; i++) {
+            let cx = i % cols;
+            let cy = Math.floor(i / cols);
+            
+            let cellX = x + (cx * subW);
+            let cellY = y + (cy * subH);
+
+            let pixelW = subW / 6;
+            let pixelH = subH / 6;
+
+            if ((mask >> i) & 1) {
+                // Active bits: apply row-specific patterns
+                for (let py = 0; py < 8; py++) {
+                    // Row mapping:
+                    // cy=0 (rows 0-1): use normal pattern1
+                    // cy=1 (rows 2-3): use pattern1FlipH
+                    // cy=2 (rows 4-5): use normal pattern1
+                    // cy=3 (rows 6-7): use pattern1FlipH
+                    let usePattern = (cy === 1 || cy === 3) ? pattern1FlipH : pattern1;
+                    
+                    for (let px = 0; px < 6; px++) {
+                        if (usePattern[py] && usePattern[py][px] === 1) {
+                            ctx.rect(
+                                cellX + (px * pixelW), 
+                                cellY + (py * pixelH), 
+                                pixelW, 
+                                pixelH
+                            );
+                        }
+                    }
+                }
+            } else {
+                // Blank spaces (0 bits) draw pattern0
+                for (let py = 0; py < 8; py++) {
+                    for (let px = 0; px < 6; px++) {
+                        if (pattern0[py] && pattern0[py][px] === 1) {
+                            ctx.rect(
+                                cellX + (px * pixelW), 
+                                cellY + (py * pixelH), 
+                                pixelW, 
+                                pixelH
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    /* ============================================================
+       2. Alternative Row Pattern Renderer
+       ============================================================ */
+
+    function draw2x4BlockAlternate(ctx, x, y, width, height, mask) {
+        const rows = 4;
+        const cols = 2;
+        const subW = width / cols;
+        const subH = height / rows;
+
+        const pattern0 = [
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0],
+            [0,0,0,0,0,0]
+        ];
+
+        const pattern1 = [
+            [0,1,0,1,0,1],
+            [1,1,1,1,1,1],
+            [1,0,1,0,1,0],
+            [1,1,1,1,1,1],
+            [0,1,0,1,0,1],
+            [1,1,1,1,1,1]
+        ];
+
+        const pattern1FlipH = [
+            [1,0,1,0,1,0],
+            [1,1,1,1,1,1],
+            [0,1,0,1,0,1],
+            [1,1,1,1,1,1],
+            [1,0,1,0,1,0],
+            [1,1,1,1,1,1]
+        ];
+
+        ctx.save();
+        ctx.beginPath();
+
+        for (let i = 0; i < 8; i++) {
+            let cx = i % cols;
+            let cy = Math.floor(i / cols);
+            
+            let cellX = x + (cx * subW);
+            let cellY = y + (cy * subH);
+
+            let pixelW = subW / 6;
+            let pixelH = subH / 8;
+
+            if ((mask >> i) & 1) {
+                // Use different row patterns based on cy position
+                for (let py = 0; py < 8; py++) {
+                    let usePattern = pattern1;
+                    if (cy === 1) usePattern = pattern1FlipH;  // Row 1: flip
+                    else if (cy === 3) usePattern = pattern1FlipH;  // Row 3: flip
+                    
+                    for (let px = 0; px < 6; px++) {
+                        if (usePattern[py] && usePattern[py][px] === 1) {
+                            ctx.rect(
+                                cellX + (px * pixelW), 
+                                cellY + (py * pixelH), 
+                                pixelW, 
+                                pixelH
+                            );
+                        }
+                    }
+                }
+            } else {
+                for (let py = 0; py < 8; py++) {
+                    for (let px = 0; px < 6; px++) {
+                        if (pattern0[py] && pattern0[py][px] === 1) {
+                            ctx.rect(
+                                cellX + (px * pixelW), 
+                                cellY + (py * pixelH), 
+                                pixelW, 
+                                pixelH
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    /* ============================================================
+       3. Native Bit-Shift Fallback Geometry Renderer
+       ============================================================ */
+
+    function draw2by4Char(charCode, textRender, x, y, width, height) {
+        var code = 0;
+        // Skips and offsets matching constraints across the structural bounds
+        if(charCode >= 0x1C164 && charCode <= 0x1C177) code = charCode - 0x1C164 + 1;
+        if(charCode >= 0x1C178 && charCode <= 0x1C18B) code = charCode - 0x1C164 + 2;
+        if(charCode >= 0x1C18C && charCode <= 0x1C19F) code = charCode - 0x1C164 + 3;
+        
+        textRender.save();
+        textRender.beginPath();
+
+        for(var py = 0; py < 4; py++) {
+            var idx = py * 2;
+            if(code >> idx & 1) {
+                if (code >> idx & 2) {
+                    textRender.rect(x, y + py * (height / 4), width, height / 4);
+                } else {
+                    textRender.rect(x, y + py * (height / 4), width / 2, height / 4);
+                }
+            } else if (code >> idx & 2) {
+                textRender.rect(x + (width / 2), y + py * (height / 4), width / 2, height / 4);
+            }
+        }
+
+        textRender.closePath();
+        textRender.fill();
+        textRender.restore();
+    }
+
+    /* ============================================================
+       4. Mask Mapping & Filtering Utilities (256 Total Patterns)
+       ============================================================ */
+
+    const START_CHAR = 0x451E0;
+    const END_CHAR = 0x452CF;
+    const START_CHAR_2X4 = 0x451E0;
+    const END_CHAR_2X4 = 0x452CF;
+
+    // All 256 masks available (0x00 through 0xFF)
+    function getValidMasks() {
+        let masks = [];
+        for (let m = 0x00; m <= 0xFF; m++) {
+            if (m === 0x00 || m === 0x05 || m === 0x0A || m === 0x0F || m === 0x50 || m === 0x55 || m === 0x5A || m === 0x5F || m === 0xA0 || m === 0xA5 || m === 0xAA || m === 0xAF || m === 0xF0 || m === 0xF5 || m === 0xFA || m === 0xFF) continue;
+            masks.push(m);
+        }
+        return masks;
+    }
+
+    const validMasks = getValidMasks();
+
+    function charToMask(char_code) {
+        let index = char_code - START_CHAR;
+        if (index >= 0 && index < validMasks.length) {
+            return validMasks[index];
+        }
+        return null;
+    }
+
+    function charToMask2x4(char_code) {
+        let index = char_code - START_CHAR_2X4;
+        if (index >= 0 && index < validMasks.length) {
+            return validMasks[index];
+        }
+        return null;
+    }
+
+    function maskToChar(mask) {
+        let index = validMasks.indexOf(mask);
+        if (index !== -1) {
+            return START_CHAR + index;
+        }
+        return null;
+    }
+
+    function maskToChar2x4(mask) {
+        let index = validMasks.indexOf(mask);
+        if (index !== -1) {
+            return START_CHAR_2X4 + index;
+        }
+        return null;
+    }
+
+    /* ============================================================
+       5. Patching the drawBlockChar Dispatcher
+       ============================================================ */
+
+    const originalDrawBlockChar = window.drawBlockChar;
+
+    window.drawBlockChar = function(char_code, ctx, x, y, width, height) {
+        // Original 2x3 pattern renderer
+        if (char_code >= START_CHAR && char_code <= END_CHAR) {
+            const mask = charToMask(char_code);
+            if (mask !== null) {
+                draw2x4Block(ctx, x, y, width, height, mask);
+                return;
+            }
+        }
+        // New 2x4 pattern renderer with row-specific flipping
+        if (char_code >= START_CHAR_2X4 && char_code <= END_CHAR_2X4) {
+            const mask = charToMask2x4(char_code);
+            if (mask !== null) {
+                draw2x4Block(ctx, x, y, width, height, mask);
+                return;
+            }
+        }
+        return originalDrawBlockChar.apply(this, arguments);
+    };
+
+    /* ============================================================
+       6. Update Validity Check
+       ============================================================ */
+
+    const originalIsValid = window.isValidSpecialSymbol;
+    window.isValidSpecialSymbol = function(char_code) {
+        if ((char_code >= START_CHAR && char_code <= END_CHAR) ||
+            (char_code >= START_CHAR_2X4 && char_code <= END_CHAR_2X4)) {
+            return true;
+        }
+        return originalIsValid(char_code);
+    };
+
+    /* ============================================================
+       7. Register Chat Commands
+       ============================================================ */
+
+    if (window.w && w.chat && w.chat.registerCommand) {
+        w.chat.registerCommand("b24", function(args) {
+            // Guard against undefined args
+            if (!args || !Array.isArray(args) || args.length === 0) {
+                console.warn("b24 command: No hex argument provided. Usage: /b24 FF");
+                return;
+            }
+
+            let input = args[0];
+            if (!input) {
+                console.warn("b24 command: Empty input");
+                return;
+            }
+
+            let val = parseInt(input, 16);
+            
+            if (!isNaN(val) && val >= 0x00 && val <= 0xFF) {
+                let charCode = maskToChar2x4(val);
+                if (charCode !== null) {
+                    let char = String.fromCodePoint(charCode);
+                    w.typeChar(char);
+                } else {
+                    console.warn("Invalid hex value. Must be 0x00-0xFF");
+                }
+            } 
+        }, ["hex"], "Type 2x4 binary pattern (Row 0: normal, Row 1: flip H, Row 2: normal, Row 3: flip H)", "FE");
+
+        w.chat.registerCommand("b24alt", function(args) {
+            // Guard against undefined args
+            if (!args || !Array.isArray(args) || args.length === 0) {
+                console.warn("b24alt command: No hex argument provided. Usage: /b24alt FF");
+                return;
+            }
+
+            let input = args[0];
+            if (!input) {
+                console.warn("b24alt command: Empty input");
+                return;
+            }
+
+            let val = parseInt(input, 16);
+            
+            if (!isNaN(val) && val >= 0x00 && val <= 0xFF) {
+                let charCode = maskToChar2x4(val);
+                if (charCode !== null) {
+                    let char = String.fromCodePoint(charCode);
+                    w.typeChar(char);
+                } else {
+                    console.warn("Invalid hex value. Must be 0x00-0xFF");
+                }
+            } 
+        }, ["hex"], "Type 2x4 alternate binary pattern", "FE");
+    }
+
+    // Settings Cleanup and screen refresh
+    if (typeof bufferLargeChars !== 'undefined') {
+        bufferLargeChars = false;
+    }
+    if (window.w && w.redraw) {
+        w.redraw();
+    }
+    
+    console.log("2x4 Binary Patterns (256 patterns) Loaded. Row structure: 0=normal, 1=flip H, 2=normal, 3=flip H. Commands: /b24 [hex] and /b24alt [hex]");
+
+})();
+</script>
+<script>
+(function() {
+
+    /* ============================================================
+       1. Core 2x3 Path Renderer with 6x8 Binary Shading Pattern
+       ============================================================ */
+
+    function draw2x3Block(ctx, x, y, width, height, mask) {
+        const rows = 4;
+        const cols = 2;
+        const subW = width / cols;
+        const subH = height / rows;
+
+        // 6x8 Binary Shading Pattern matrices (0 = Empty, 1 = Pattern active)
+        const pattern0 = [
+            [0,1,0,1,0,1],
+            [1,0,1,0,1,0],
+            [0,1,0,1,0,1],
+            [1,0,1,0,1,0],
+            [0,1,0,1,0,1],
+            [1,0,1,0,1,0],
+        ];
+
+        const pattern1 = [
+            [1,1,1,1,1,1],
+            [1,1,1,1,1,1],
+            [1,1,1,1,1,1],
+            [1,1,1,1,1,1],
+            [1,1,1,1,1,1],
+            [1,1,1,1,1,1]
+        ];
+
+        ctx.save();
+        ctx.beginPath();
+
+        // Loop through the 8 bits of the mask (256 patterns total)
+        for (let i = 0; i < 8; i++) {
+            let cx = i % cols;
+            let cy = Math.floor(i / cols);
+            
+            let cellX = x + (cx * subW);
+            let cellY = y + (cy * subH);
+
+            let pixelW = subW / 6;
+            let pixelH = subH / 6;
+
+            if ((mask >> i) & 1) {
+                // Active bits draw solid pattern1
+                for (let py = 0; py < 8; py++) {
+                    for (let px = 0; px < 6; px++) {
+                        if (pattern1[py] && pattern1[py][px] === 1) {
+                            ctx.rect(
+                                cellX + (px * pixelW), 
+                                cellY + (py * pixelH), 
+                                pixelW, 
+                                pixelH
+                            );
+                        }
+                    }
+                }
+            } else {
+                // Blank spaces (0 bits) draw pattern0
+                for (let py = 0; py < 8; py++) {
+                    for (let px = 0; px < 6; px++) {
+                        if (pattern0[py] && pattern0[py][px] === 1) {
+                            ctx.rect(
+                                cellX + (px * pixelW), 
+                                cellY + (py * pixelH), 
+                                pixelW, 
+                                pixelH
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    /* ============================================================
+       2. Native Bit-Shift Fallback Geometry Renderer
+       ============================================================ */
+
+    function draw2by3Char(charCode, textRender, x, y, width, height) {
+        var code = 0;
+        // Skips and offsets matching constraints across the structural bounds
+        if(charCode >= 0x1C164 && charCode <= 0x1C177) code = charCode - 0x1C164 + 1;
+        if(charCode >= 0x1C178 && charCode <= 0x1C18B) code = charCode - 0x1C164 + 2;
+        if(charCode >= 0x1C18C && charCode <= 0x1C19F) code = charCode - 0x1C164 + 3;
+        
+        textRender.save();
+        textRender.beginPath();
+
+        for(var py = 0; py < 3; py++) {
+            var idx = py * 2;
+            if(code >> idx & 1) {
+                if (code >> idx & 2) {
+                    textRender.rect(x, y + py * (height / 3), width, height / 3);
+                } else {
+                    textRender.rect(x, y + py * (height / 3), width / 2, height / 3);
+                }
+            } else if (code >> idx & 2) {
+                textRender.rect(x + (width / 2), y + py * (height / 3), width / 2, height / 3);
+            }
+        }
+
+        textRender.closePath();
+        textRender.fill();
+        textRender.restore();
+    }
+
+    /* ============================================================
+       3. Mask Mapping & Filtering Utilities (256 Total Patterns)
+       ============================================================ */
+
+    const START_CHAR = 0x452D0;
+    const END_CHAR = 0x453CF;
+
+    // All 256 masks available (0x00 through 0xFF)
+    function getValidMasks() {
+        let masks = [];
+        for (let m = 0x00; m <= 0xFF; m++) {
+            if (m === 0x00 || m === 0x05 || m === 0x0A || m === 0x0F || m === 0x50 || m === 0x55 || m === 0x5A || m === 0x5F || m === 0xA0 || m === 0xA5 || m === 0xAA || m === 0xAF || m === 0xF0 || m === 0xF5 || m === 0xFA || m === 0xFF) continue;
+            masks.push(m);
+        }
+        return masks;
+    }
+
+    const validMasks = getValidMasks();
+
+    function charToMask(char_code) {
+        let index = char_code - START_CHAR;
+        if (index >= 0 && index < validMasks.length) {
+            return validMasks[index];
+        }
+        return null;
+    }
+
+    function maskToChar(mask) {
+        let index = validMasks.indexOf(mask);
+        if (index !== -1) {
+            return START_CHAR + index;
+        }
+        return null;
+    }
+
+    /* ============================================================
+       4. Patching the drawBlockChar Dispatcher
+       ============================================================ */
+
+    const originalDrawBlockChar = window.drawBlockChar;
+
+    window.drawBlockChar = function(char_code, ctx, x, y, width, height) {
+        if (char_code >= START_CHAR && char_code <= END_CHAR) {
+            const mask = charToMask(char_code);
+            if (mask !== null) {
+                // Renders the primary textured variant
+                draw2x3Block(ctx, x, y, width, height, mask);
+                return;
+            }
+        }
+        return originalDrawBlockChar.apply(this, arguments);
+    };
+
+    /* ============================================================
+       5. Update Validity Check
+       ============================================================ */
+
+    const originalIsValid = window.isValidSpecialSymbol;
+    window.isValidSpecialSymbol = function(char_code) {
+        if (char_code >= START_CHAR && char_code <= END_CHAR) {
+            return true;
+        }
+        return originalIsValid(char_code);
+    };
+
+    /* ============================================================
+       6. Register Chat Command
+       ============================================================ */
+
+    if (window.w && w.chat && w.chat.registerCommand) {
+        w.chat.registerCommand("b23", function(args) {
+            // Guard against undefined args
+            if (!args || !Array.isArray(args) || args.length === 0) {
+                console.warn("b23 command: No hex argument provided. Usage: /b23 FF");
+                return;
+            }
+
+            let input = args[0];
+            if (!input) {
+                console.warn("b23 command: Empty input");
+                return;
+            }
+
+            let val = parseInt(input, 16);
+            
+            if (!isNaN(val) && val >= 0x00 && val <= 0xFF) {
+                let charCode = maskToChar(val);
+                if (charCode !== null) {
+                    let char = String.fromCodePoint(charCode);
+                    w.typeChar(char);
+                } else {
+                console.warn("Invalid hex value. Must be 0x00-0xFF");
+                }
+            } 
+        }, ["hex"], "Type 2x3 sextant pattern (0x00-0xFF)", "FE");
+    }
+
+    // Settings Cleanup and screen refresh
+    if (typeof bufferLargeChars !== 'undefined') {
+        bufferLargeChars = false;
+    }
+    if (window.w && w.redraw) {
+        w.redraw();
+    }
+    
+    console.log("2x3 Sextants (256 patterns) Loaded. All octants available. Full 8-bit shade patterns active.");
+
+})();
+</script>
