@@ -10804,6 +10804,13 @@ window.drawBlockChar = function(char_code, ctx, x, y, width, height) {
         case 0x1C235: code = 0o2645n; rows = 3; cols = 4; break;
         case 0x1C236: code = 0o252n; rows = 3; cols = 3; break;
         case 0x1C237: code = 0o525n; rows = 3; cols = 3; break;
+        case 0x1C298: code = 0x7570n; rows = 4; cols = 4; break;
+        case 0x1C299: code = 0x757n; rows = 4; cols = 4; break;
+        case 0x1C29A: code = 0xEAEn; rows = 4; cols = 4; break;
+        case 0x1C29B: code = 0xEAE0n; rows = 4; cols = 4; break;
+        case 0x1CE03: code = 0b11111111111000110001100010000000000000000000000000n; rows = 10; cols = 5; break;
+        case 0x1CE04: code = 0b00000000000000000000000001000110001100011111111111n; rows = 10; cols = 5; break;
+        case 0x1CE05: code = 0b1111110001101011000111111n; rows = 5; cols = 5; break;
         default:
             return originalDispatcher.apply(this, arguments);
     }
@@ -10830,10 +10837,11 @@ window.isValidSpecialSymbol = (function(oldValid) {
             (char_code >= 0x1FB95 && char_code <= 0x1FB97) ||
             (char_code >= 0x1FB9C && char_code <= 0x1FB9F) ||
             (char_code >= 0x1FBFB && char_code <= 0x1FBFC) ||
+            (char_code >= 0x1CE03 && char_code <= 0x1CE05) ||
             (char_code >= 0x1CEB5 && char_code <= 0x1CEB6) ||
             (char_code >= 0x1C220 && char_code <= 0x1C237) ||
             (char_code >= 0x1C238 && char_code <= 0x1C23B) ||
-            (char_code >= 0x1C292 && char_code <= 0x1C297) ||
+            (char_code >= 0x1C292 && char_code <= 0x1C29B) ||
             (char_code == 0x2429 || char_code == 0x1CEB4) ||
             (char_code >= 0x1C1A0 && char_code <= 0x1C1AF) ||
             (char_code == 0x25A0 || char_code == 0x25A1) ||
