@@ -3995,11 +3995,10 @@ function alertJS(data, restrict) {
 	elm.confirm_js.style.display = "";
 	elm.confirm_js_code.innerText = data;
 	if(restrict) {
-		elm.confirm_js_msg.innerText = "This is a snippet of possibly untrusted JavaScript code.";
-		run_js_confirm.innerText = "Copy & Close";
+		elm.confirm_js_msg.innerHTML = "Are you sure you want to run this javascript link?<br>Press Close to <i>not</i> run it.";
+		run_js_confirm.innerText = "run";
 		run_js_confirm.onclick = function() {
-			w.clipboard.copy(data);
-			closeJSAlert();
+			confirmRunJSLink(data);
 			return false;
 		}
 	} else {
