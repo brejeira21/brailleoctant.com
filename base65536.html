@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Braille Octant</title>
+		<title>/base65536</title>
 		<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
 		<link rel="shortcut icon" type="image/png" href="https://api.websim.com/blobs/019df0e7-2b15-752c-bbd0-d39680d9e944.png">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -4897,7 +4897,7 @@ function createWsPath() {
 	if (search === "?root") {
 		return "ws" + (window.location.protocol == "https:" ? "s" : "") + "://ourworldoftext.com/ws/";
 	} */
-	return "ws" + (window.location.protocol == "https:" ? "s" : "") + "://text.sussy.dev/brailleoctant/ws/";
+	return "ws" + (window.location.protocol == "https:" ? "s" : "") + "://text.sussy.dev/brailleoctant/base65536/ws/";
 }
 
 function createSocket(getChatHist) {
@@ -15170,4 +15170,71 @@ document.body.appendChild(twstyle);
 </script>
 <script>
 const element = document.getElementById("base256");
+</script>
+<script>
+// Title: Decimal to Base 65536 (U+C0000-U+CFFFF) Converter Bit Order: [15, 11, 7, 3, 14, 10, 6, 2, 13, 9, 5, 1, 12, 8, 4, 0]
+
+(function() {
+    // Custom bit permutation mapping
+    const bitOrder = [15, 11, 7, 3, 14, 10, 6, 2, 13, 9, 5, 1, 12, 8, 4, 0];
+
+    // Permute bits of a 16-bit integer (0–65535) according to bitOrder
+    function permuteBits(value) {
+        let permuted = 0;
+        for (let i = 0; i < 16; i++) {
+            let bit = (value >> (15 - i)) & 1;
+            permuted |= (bit << (15 - bitOrder[i]));
+        }
+        return permuted;
+    }
+
+    // Convert decimal number/BigInt to Base 65536 character string (U+C0000 to U+CFFFF)
+    function decimalToBase65536(num) {
+        let n = BigInt(num);
+        if (n === 0n) {
+            let permuted = permuteBits(0);
+            return String.fromCodePoint(0xC0000 + permuted);
+        }
+
+        let chars = [];
+        const BASE = 65536n;
+
+        while (n > 0n) {
+            let remainder = Number(n % BASE);
+            let permuted = permuteBits(remainder);
+            chars.unshift(String.fromCodePoint(0xC0000 + permuted));
+            n = n / BASE;
+        }
+
+        return chars.join('');
+    }
+
+    // Fixed write function preserving full UTF-16 surrogate pairs
+    window.writeBase65536ToCanvas = function(decimalValue, startX, startY, charColor = 0) {
+        try {
+            let encodedText = decimalToBase65536(decimalValue);
+            
+            // Convert string into an array of complete Unicode code points (preserves surrogate pairs)
+            let characters = Array.from(encodedText);
+
+            characters.forEach((char, index) => {
+                let currentX = startX + index; // Increment position by code point, not byte/code unit
+
+                if (typeof writeCharToXY === 'function') {
+                    writeCharToXY(char, charColor, currentX, startY);
+                } else if (typeof w !== 'undefined' && typeof w.setChar === 'function') {
+                    w.setChar(currentX, startY, char);
+                } else {
+                    throw new Error("OWOT write function unavailable.");
+                }
+            });
+
+            console.log(`Successfully wrote "${encodedText}" to (${startX}, ${startY})`);
+        } catch (err) {
+            console.error("writeBase65536ToCanvas Error:", err.message);
+        }
+    };
+
+    console.log("Decimal to Base 65536 Converter Loaded.");
+})();
 </script>
