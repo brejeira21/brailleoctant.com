@@ -15172,69 +15172,68 @@ document.body.appendChild(twstyle);
 const element = document.getElementById("base256");
 </script>
 <script>
-// Title: Decimal to Base 65536 (U+C0000-U+CFFFF) Converter Bit Order: [15, 11, 7, 3, 14, 10, 6, 2, 13, 9, 5, 1, 12, 8, 4, 0]
+if (window.w && w.chat && w.chat.registerCommand) {
+  // Bit-order mapping: for input bit index j (0 = LSB, 15 = MSB)
+  // the bit is moved to position order[j] in the output value.
+  const BIT_ORDER = [15, 11, 7, 3, 14, 10, 6, 2, 13, 9, 5, 1, 12, 8, 4, 0];
 
-(function() {
-    // Custom bit permutation mapping
-    const bitOrder = [15, 11, 7, 3, 14, 10, 6, 2, 13, 9, 5, 1, 12, 8, 4, 0];
+  function permute16bits(val) {
+    // val: number 0..65535
+    let out = 0;
+    for (let j = 0; j < 16; j++) {
+      if ((val >> j) & 1) {
+        out |= 1 << BIT_ORDER[j];
+      }
+    }
+    return out >>> 0;
+  }
 
-    // Permute bits of a 16-bit integer (0–65535) according to bitOrder
-    function permuteBits(value) {
-        let permuted = 0;
-        for (let i = 0; i < 16; i++) {
-            let bit = (value >> (15 - i)) & 1;
-            permuted |= (bit << (15 - bitOrder[i]));
-        }
-        return permuted;
+  w.chat.registerCommand("base65536", function(args) {
+    let input = (args && args[0]) ? String(args[0]).trim() : "";
+    if (!input) return;
+
+    // Accept decimal (e.g. "12345") or hex with 0x prefix (e.g. "0x1FFFF").
+    let n;
+    try {
+      if (/^0x[0-9a-f]+$/i.test(input)) {
+        n = BigInt(input);
+      } else if (/^[0-9]+$/.test(input)) {
+        n = BigInt(input);
+      } else {
+        // If you want other syntaxes (like trailing 'h') add them here.
+        return;
+      }
+    } catch (e) {
+      return;
     }
 
-    // Convert decimal number/BigInt to Base 65536 character string (U+C0000 to U+CFFFF)
-    function decimalToBase65536(num) {
-        let n = BigInt(num);
-        if (n === 0n) {
-            let permuted = permuteBits(0);
-            return String.fromCodePoint(0xC0000 + permuted);
-        }
+    if (n < 0n) return;
 
-        let chars = [];
-        const BASE = 65536n;
+    const BASE = 65536n;
+    const BASE_OFFSET = 0xC0000; // U+ C0000
 
-        while (n > 0n) {
-            let remainder = Number(n % BASE);
-            let permuted = permuteBits(remainder);
-            chars.unshift(String.fromCodePoint(0xC0000 + permuted));
-            n = n / BASE;
-        }
-
-        return chars.join('');
+    // Special-case zero -> one codepoint for 0
+    if (n === 0n) {
+      const p = permute16bits(0);
+      w.typeChar(String.fromCodePoint(BASE_OFFSET + p));
+      return;
     }
 
-    // Fixed write function preserving full UTF-16 surrogate pairs
-    window.writeBase65536ToCanvas = function(decimalValue, startX, startY, charColor = 0) {
-        try {
-            let encodedText = decimalToBase65536(decimalValue);
-            
-            // Convert string into an array of complete Unicode code points (preserves surrogate pairs)
-            let characters = Array.from(encodedText);
+    // Split into 16-bit chunks (least-significant first)
+    const chunks = [];
+    while (n > 0n) {
+      const chunk = Number(n & 0xFFFFn); // safe: 0..65535 fits Number
+      n = n >> 16n; // divide by 65536
+      chunks.push(chunk);
+    }
 
-            characters.forEach((char, index) => {
-                let currentX = startX + index; // Increment position by code point, not byte/code unit
-
-                if (typeof writeCharToXY === 'function') {
-                    writeCharToXY(char, charColor, currentX, startY);
-                } else if (typeof w !== 'undefined' && typeof w.setChar === 'function') {
-                    w.setChar(currentX, startY, char);
-                } else {
-                    throw new Error("OWOT write function unavailable.");
-                }
-            });
-
-            console.log(`Successfully wrote "${encodedText}" to (${startX}, ${startY})`);
-        } catch (err) {
-            console.error("writeBase65536ToCanvas Error:", err.message);
-        }
-    };
-
-    console.log("Decimal to Base 65536 Converter Loaded.");
-})();
+    // Convert chunks with bit permutation and map to codepoints.
+    // Reverse so we output most-significant chunk first.
+    for (let i = chunks.length - 1; i >= 0; i--) {
+      const permuted = permute16bits(chunks[i]);
+      const cp = BASE_OFFSET + permuted;
+      w.typeChar(String.fromCodePoint(cp));
+    }
+  }, ["dec", "hex"], "Type base-65536 (U+C0000..U+CFFFF) blocks with 16-bit bit-order permutation", "65537");
+}
 </script>
