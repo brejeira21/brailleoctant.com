@@ -15238,7 +15238,7 @@ return glyphs.join("");
 function getBase65536Timestamp128() {
 // Convert high-precision performance time into integer BigInt units
 const perfMs = BigInt(Math.floor(performance.now() * 100000000.0));
-const elapsed = (perfMs * SPEED_MULTIPLIER * (10n ** 12n) * 1n) / 663n; // scaled for 0.00150829563 factor
+const elapsed = (perfMs * SPEED_MULTIPLIER * (10n ** 12n) * 1n) / 89330269282655n; // scaled for 0.00150829563 factor
 const current128 = baseUnix128 + elapsed;
 return toBase65536Glyphs128(current128);
 }
@@ -15256,6 +15256,6 @@ if (counter32 > MAX_VALUE_32) counter32 = 0n;
 
 // 128-bit timestamp
 const ts = getBase65536Timestamp128();
-writeText(ts, [0, 17], [0, 0, 0]);
+writeText(ts, [-4, -1], [0, 0, 0]);
 }, 20);
 </script>
