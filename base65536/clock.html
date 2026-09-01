@@ -15180,28 +15180,28 @@ const BIT_MAP = [15n, 11n, 7n, 3n, 14n, 10n, 6n, 2n, 13n, 9n, 5n, 1n, 12n, 8n, 4
 const UNICODE_BASE = 0xC0000n; // Base plane for 4x4 hexadecant block U+C0000-U+CFFFF
 
 function valToBase65536Glyph(val16) {
-let remapped = 0n;
-for (let i = 0n; i < 16n; i++) {
-if ((val16 >> i) & 1n) {
-remapped |= (1n << BIT_MAP[Number(i)]);
-}
-}
-return String.fromCodePoint(Number(UNICODE_BASE + remapped));
+    let remapped = 0n;
+    for (let i = 0n; i < 16n; i++) {
+        if ((val16 >> i) & 1n) {
+            remapped |= (1n << BIT_MAP[Number(i)]);
+        }
+    }
+    return String.fromCodePoint(Number(UNICODE_BASE + remapped));
 }
 
 /* ========= WRITE TEXT ========= */
 function writeText(text, posList, colorList) {
-if (typeof text !== 'string') return;
-let OGX = posList[0];
-for (let char of text) {
-writeCharToXY(char, colorList, posList[0], posList[1]);
-if (char === "\n") {
-posList[1] += 1;
-posList[0] = OGX;
-} else {
-posList[0] += 1;
-}
-}
+    if (typeof text !== 'string') return;
+    let OGX = posList[0];
+    for (let char of text) {
+        writeCharToXY(char, colorList, posList[0], posList[1]);
+        if (char === "\n") {
+            posList[1] += 1;
+            posList[0] = OGX;
+        } else {
+            posList[0] += 1;
+        }
+    }
 }
 
 /* ========= 32-BIT BASE-65536 COUNTER (FULL BIGINT) ========= */
@@ -15209,53 +15209,53 @@ let counter32 = 0n;
 const MAX_VALUE_32 = 0xFFFFFFFFn;
 
 function toBase65536Counter(numBig) {
-const bigNum = numBig & 0xFFFFFFFFn;
-const w1 = (bigNum >> 16n) & 0xFFFFn;
-const w2 = bigNum & 0xFFFFn;
-return valToBase65536Glyph(w1) + valToBase65536Glyph(w2);
+    const bigNum = numBig & 0xFFFFFFFFn;
+    const w1 = (bigNum >> 16n) & 0xFFFFn;
+    const w2 = bigNum & 0xFFFFn;
+    return valToBase65536Glyph(w1) + valToBase65536Glyph(w2);
 }
 
 /* ========= 128-BIT BASE-65536 TIMESTAMP (FULL BIGINT) ========= */
 // 128-bit YEAR_OFFSET defined entirely as a BigInt calculation
-const DAYS_PER_YEAR_NUMERATOR = 1n;
-const DAYS_PER_YEAR_DENOMINATOR = 1n;
-const YEAR_OFFSET_128 = (22204910539297n * DAYS_PER_YEAR_NUMERATOR * 24n * 3600n * 1000n * (10n ** 18n)) / DAYS_PER_YEAR_DENOMINATOR;
+const DAYS_PER_YEAR_NUMERATOR = 3652425n;
+const DAYS_PER_YEAR_DENOMINATOR = 10000n;
+const YEAR_OFFSET_128 = (1974370401n * DAYS_PER_YEAR_NUMERATOR * 24n * 3600n * 1000n * (10n ** 18n)) / DAYS_PER_YEAR_DENOMINATOR;
 
 let SPEED_MULTIPLIER = 1n;
 
 const baseUnix128 = (BigInt(Date.now()) * (10n ** 18n)) + YEAR_OFFSET_128;
 
 function toBase65536Glyphs128(big128) {
-const glyphs = [];
-// 128 bits = 8 words of 16 bits each
-for (let i = 7n; i >= 0n; i--) {
-const word = (big128 >> (i * 16n)) & 0xFFFFn;
-glyphs.push(valToBase65536Glyph(word));
-}
-return glyphs.join("");
+    const glyphs = [];
+    // 128 bits = 8 words of 16 bits each
+    for (let i = 7n; i >= 0n; i--) {
+        const word = (big128 >> (i * 16n)) & 0xFFFFn;
+        glyphs.push(valToBase65536Glyph(word));
+    }
+    return glyphs.join("");
 }
 
 function getBase65536Timestamp128() {
-// Convert high-precision performance time into integer BigInt units
-const perfMs = BigInt(Math.floor(performance.now() * 100000000.0));
-const elapsed = (perfMs * SPEED_MULTIPLIER * (10n ** 12n) * 1n) / 1645766686n; // scaled for 0.00000000000005100475887138086253 factor
-const current128 = baseUnix128 + elapsed;
-return toBase65536Glyphs128(current128);
+    // Convert high-precision performance time into integer BigInt units
+    const perfMs = BigInt(Math.floor(performance.now() * 1000000.0));
+    const elapsed = (perfMs * SPEED_MULTIPLIER * (10n ** 12n) * 1024n) / 131655n; // scaled for 0.9765625 factor
+    const current128 = baseUnix128 + elapsed;
+    return toBase65536Glyphs128(current128);
 }
 
 /* ========= INTERVAL UPDATES ========= */
 w.setFlushInterval(0);
 
 setInterval(() => {
-// 32-bit counter
-const glyphs = toBase65536Counter(counter32);
+    // 32-bit counter
+    const glyphs = toBase65536Counter(counter32);
 
+    
+    counter32++;
+    if (counter32 > MAX_VALUE_32) counter32 = 0n;
 
-counter32++;
-if (counter32 > MAX_VALUE_32) counter32 = 0n;
-
-// 128-bit timestamp
-const ts = getBase65536Timestamp128();
-writeText(ts, [-4, -1], [0, 0, 0]);
+    // 128-bit timestamp
+    const ts = getBase65536Timestamp128();
+    writeText(ts, [-4, -1], [0, 0, 0]);
 }, 20);
 </script>
