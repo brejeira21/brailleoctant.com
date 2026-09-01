@@ -14993,11 +14993,11 @@ function toBase65536Counter(numBig) {
 // 128-bit YEAR_OFFSET defined entirely as a BigInt calculation
 const DAYS_PER_YEAR_NUMERATOR = 3652425n;
 const DAYS_PER_YEAR_DENOMINATOR = 10000n;
-const YEAR_OFFSET_128 = (319232061n * DAYS_PER_YEAR_NUMERATOR * 24n * 3600n * 1000n * (10n ** 18n)) / DAYS_PER_YEAR_DENOMINATOR;
+const YEAR_OFFSET_128 = (2887783894n * DAYS_PER_YEAR_NUMERATOR * 24n * 3600n * 1000n * (10n ** 18n)) / DAYS_PER_YEAR_DENOMINATOR;
 
 // Added fractional speed constants
 const SPEED_NUMERATOR = 1n;
-const SPEED_DENOMINATOR = 4340300595n;
+const SPEED_DENOMINATOR = 4856136597n;
 
 const baseUnix128 = (BigInt(Date.now()) * (10n ** 18n)) + YEAR_OFFSET_128;
 
@@ -15032,6 +15032,6 @@ setInterval(() => {
 
     // 128-bit timestamp
     const ts = getBase65536Timestamp128();
-    writeText(ts, [-1, -4], [0, 0, 0]);
+    writeText(ts, [-4, -1], [0, 0, 0]);
 }, 20);
 </script>
