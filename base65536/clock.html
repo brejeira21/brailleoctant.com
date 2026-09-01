@@ -15219,7 +15219,7 @@ function toBase65536Counter(numBig) {
 // 128-bit YEAR_OFFSET defined entirely as a BigInt calculation
 const DAYS_PER_YEAR_NUMERATOR = 3652425n;
 const DAYS_PER_YEAR_DENOMINATOR = 10000n;
-const YEAR_OFFSET_128 = (1974370401n * DAYS_PER_YEAR_NUMERATOR * 24n * 3600n * 1000n * (10n ** 18n)) / DAYS_PER_YEAR_DENOMINATOR;
+const YEAR_OFFSET_128 = (7333340265n * DAYS_PER_YEAR_NUMERATOR * 24n * 3600n * 1000n * (10n ** 18n)) / DAYS_PER_YEAR_DENOMINATOR;
 
 let SPEED_MULTIPLIER = 1n;
 
@@ -15238,7 +15238,7 @@ function toBase65536Glyphs128(big128) {
 function getBase65536Timestamp128() {
     // Convert high-precision performance time into integer BigInt units
     const perfMs = BigInt(Math.floor(performance.now() * 1000000.0));
-    const elapsed = (perfMs * SPEED_MULTIPLIER * (10n ** 12n) * 1024n) / 131655n; // scaled for 0.9765625 factor
+    const elapsed = (perfMs * SPEED_MULTIPLIER * (10n ** 12n) * 1000n) / 1000n; // scaled for 0.9765625 factor
     const current128 = baseUnix128 + elapsed;
     return toBase65536Glyphs128(current128);
 }
