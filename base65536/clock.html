@@ -14946,232 +14946,6 @@ document.body.appendChild(twstyle);
 })();
 </script>
 <script>
-(function() {
-
-    /* ============================================================
-       1. Core 2x3 Path Renderer with 6x8 Binary Shading Pattern
-       ============================================================ */
-
-    function draw2x3Block(ctx, x, y, width, height, mask) {
-        const rows = 4;
-        const cols = 2;
-        const subW = width / cols;
-        const subH = height / rows;
-
-        // 6x8 Binary Shading Pattern matrices (0 = Empty, 1 = Pattern active)
-        const pattern0 = [
-            [0,1,0,1,0,1],
-            [1,0,1,0,1,0],
-            [0,1,0,1,0,1],
-            [1,0,1,0,1,0],
-            [0,1,0,1,0,1],
-            [1,0,1,0,1,0],
-        ];
-
-        const pattern1 = [
-            [1,1,1,1,1,1],
-            [1,1,1,1,1,1],
-            [1,1,1,1,1,1],
-            [1,1,1,1,1,1],
-            [1,1,1,1,1,1],
-            [1,1,1,1,1,1]
-        ];
-
-        ctx.save();
-        ctx.beginPath();
-
-        // Loop through the 8 bits of the mask (256 patterns total)
-        for (let i = 0; i < 8; i++) {
-            let cx = i % cols;
-            let cy = Math.floor(i / cols);
-            
-            let cellX = x + (cx * subW);
-            let cellY = y + (cy * subH);
-
-            let pixelW = subW / 6;
-            let pixelH = subH / 6;
-
-            if ((mask >> i) & 1) {
-                // Active bits draw solid pattern1
-                for (let py = 0; py < 8; py++) {
-                    for (let px = 0; px < 6; px++) {
-                        if (pattern1[py] && pattern1[py][px] === 1) {
-                            ctx.rect(
-                                cellX + (px * pixelW), 
-                                cellY + (py * pixelH), 
-                                pixelW, 
-                                pixelH
-                            );
-                        }
-                    }
-                }
-            } else {
-                // Blank spaces (0 bits) draw pattern0
-                for (let py = 0; py < 8; py++) {
-                    for (let px = 0; px < 6; px++) {
-                        if (pattern0[py] && pattern0[py][px] === 1) {
-                            ctx.rect(
-                                cellX + (px * pixelW), 
-                                cellY + (py * pixelH), 
-                                pixelW, 
-                                pixelH
-                            );
-                        }
-                    }
-                }
-            }
-        }
-
-        ctx.closePath();
-        ctx.fill();
-        ctx.restore();
-    }
-
-    /* ============================================================
-       2. Native Bit-Shift Fallback Geometry Renderer
-       ============================================================ */
-
-    function draw2by3Char(charCode, textRender, x, y, width, height) {
-        var code = 0;
-        // Skips and offsets matching constraints across the structural bounds
-        if(charCode >= 0x1C164 && charCode <= 0x1C177) code = charCode - 0x1C164 + 1;
-        if(charCode >= 0x1C178 && charCode <= 0x1C18B) code = charCode - 0x1C164 + 2;
-        if(charCode >= 0x1C18C && charCode <= 0x1C19F) code = charCode - 0x1C164 + 3;
-        
-        textRender.save();
-        textRender.beginPath();
-
-        for(var py = 0; py < 3; py++) {
-            var idx = py * 2;
-            if(code >> idx & 1) {
-                if (code >> idx & 2) {
-                    textRender.rect(x, y + py * (height / 3), width, height / 3);
-                } else {
-                    textRender.rect(x, y + py * (height / 3), width / 2, height / 3);
-                }
-            } else if (code >> idx & 2) {
-                textRender.rect(x + (width / 2), y + py * (height / 3), width / 2, height / 3);
-            }
-        }
-
-        textRender.closePath();
-        textRender.fill();
-        textRender.restore();
-    }
-
-    /* ============================================================
-       3. Mask Mapping & Filtering Utilities (256 Total Patterns)
-       ============================================================ */
-
-    const START_CHAR = 0x452D0;
-    const END_CHAR = 0x453CF;
-
-    // All 256 masks available (0x00 through 0xFF)
-    function getValidMasks() {
-        let masks = [];
-        for (let m = 0x00; m <= 0xFF; m++) {
-            if (m === 0x00 || m === 0x05 || m === 0x0A || m === 0x0F || m === 0x50 || m === 0x55 || m === 0x5A || m === 0x5F || m === 0xA0 || m === 0xA5 || m === 0xAA || m === 0xAF || m === 0xF0 || m === 0xF5 || m === 0xFA || m === 0xFF) continue;
-            masks.push(m);
-        }
-        return masks;
-    }
-
-    const validMasks = getValidMasks();
-
-    function charToMask(char_code) {
-        let index = char_code - START_CHAR;
-        if (index >= 0 && index < validMasks.length) {
-            return validMasks[index];
-        }
-        return null;
-    }
-
-    function maskToChar(mask) {
-        let index = validMasks.indexOf(mask);
-        if (index !== -1) {
-            return START_CHAR + index;
-        }
-        return null;
-    }
-
-    /* ============================================================
-       4. Patching the drawBlockChar Dispatcher
-       ============================================================ */
-
-    const originalDrawBlockChar = window.drawBlockChar;
-
-    window.drawBlockChar = function(char_code, ctx, x, y, width, height) {
-        if (char_code >= START_CHAR && char_code <= END_CHAR) {
-            const mask = charToMask(char_code);
-            if (mask !== null) {
-                // Renders the primary textured variant
-                draw2x3Block(ctx, x, y, width, height, mask);
-                return;
-            }
-        }
-        return originalDrawBlockChar.apply(this, arguments);
-    };
-
-    /* ============================================================
-       5. Update Validity Check
-       ============================================================ */
-
-    const originalIsValid = window.isValidSpecialSymbol;
-    window.isValidSpecialSymbol = function(char_code) {
-        if (char_code >= START_CHAR && char_code <= END_CHAR) {
-            return true;
-        }
-        return originalIsValid(char_code);
-    };
-
-    /* ============================================================
-       6. Register Chat Command
-       ============================================================ */
-
-    if (window.w && w.chat && w.chat.registerCommand) {
-        w.chat.registerCommand("b23", function(args) {
-            // Guard against undefined args
-            if (!args || !Array.isArray(args) || args.length === 0) {
-                console.warn("b23 command: No hex argument provided. Usage: /b23 FF");
-                return;
-            }
-
-            let input = args[0];
-            if (!input) {
-                console.warn("b23 command: Empty input");
-                return;
-            }
-
-            let val = parseInt(input, 16);
-            
-            if (!isNaN(val) && val >= 0x00 && val <= 0xFF) {
-                let charCode = maskToChar(val);
-                if (charCode !== null) {
-                    let char = String.fromCodePoint(charCode);
-                    w.typeChar(char);
-                } else {
-                console.warn("Invalid hex value. Must be 0x00-0xFF");
-                }
-            } 
-        }, ["hex"], "Type 2x3 sextant pattern (0x00-0xFF)", "FE");
-    }
-
-    // Settings Cleanup and screen refresh
-    if (typeof bufferLargeChars !== 'undefined') {
-        bufferLargeChars = false;
-    }
-    if (window.w && w.redraw) {
-        w.redraw();
-    }
-    
-    console.log("2x3 Sextants (256 patterns) Loaded. All octants available. Full 8-bit shade patterns active.");
-
-})();
-</script>
-<script>
-const element = document.getElementById("base65536/clock");
-</script>
-<script>
 /* full script */
 
 /* ========= 16-BIT (4x4 HEXADECANTS) BASE65536 MAPPER ========= */
@@ -15216,18 +14990,18 @@ function toBase65536Counter(numBig) {
 }
 
 /* ========= 128-BIT BASE-65536 TIMESTAMP (FULL BIGINT) ========= */
-// 128-bit YEAR_OFFSET defined entirely as a BigInt calculation
-const DAYS_PER_YEAR_NUMERATOR = 3652425n;
-const DAYS_PER_YEAR_DENOMINATOR = 10000n;
-const YEAR_OFFSET_128 = (1471351901n * DAYS_PER_YEAR_NUMERATOR * 24n * 3600n * 1000n * (10n ** 18n)) / DAYS_PER_YEAR_DENOMINATOR;
+const DAYS_PER_YEAR_NUMERATOR = 1048576n;
+const DAYS_PER_YEAR_DENOMINATOR = 100n;
+const YEAR_OFFSET_128 = (5437721680n * DAYS_PER_YEAR_NUMERATOR * 24n * 3600n * 1000n * (10n ** 18n)) / DAYS_PER_YEAR_DENOMINATOR;
 
-let SPEED_MULTIPLIER = 1n;
+// Representing 0.5 as a integer fraction (5 / 10) for BigInt math
+const SPEED_NUMERATOR = 256n;
+const SPEED_DENOMINATOR = 1e32n;
 
 const baseUnix128 = (BigInt(Date.now()) * (10n ** 18n)) + YEAR_OFFSET_128;
 
 function toBase65536Glyphs128(big128) {
     const glyphs = [];
-    // 128 bits = 8 words of 16 bits each
     for (let i = 7n; i >= 0n; i--) {
         const word = (big128 >> (i * 16n)) & 0xFFFFn;
         glyphs.push(valToBase65536Glyph(word));
@@ -15236,26 +15010,25 @@ function toBase65536Glyphs128(big128) {
 }
 
 function getBase65536Timestamp128() {
-    // Convert high-precision performance time into integer BigInt units
     const perfMs = BigInt(Math.floor(performance.now() * 1000000.0));
-    const elapsed = (perfMs * SPEED_MULTIPLIER * (10n ** 12n) * 1024n) / 1000000n; // scaled for 0.9765625 factor
+    // Apply decimal speed scaling via multiplication and division
+    const elapsed = (perfMs * SPEED_NUMERATOR * (10n ** 12n) * 1024n) / (1000n * SPEED_DENOMINATOR);
     const current128 = baseUnix128 + elapsed;
     return toBase65536Glyphs128(current128);
 }
 
-/* ========= INTERVAL UPDATES ========= */
+/* ========= INTERVAL UPDATES FOR OWOT ========= */
 w.setFlushInterval(0);
 
 setInterval(() => {
     // 32-bit counter
     const glyphs = toBase65536Counter(counter32);
 
-    
     counter32++;
     if (counter32 > MAX_VALUE_32) counter32 = 0n;
 
     // 128-bit timestamp
     const ts = getBase65536Timestamp128();
     writeText(ts, [-4, -1], [0, 0, 0]);
-}, 20);
+}, 20);	
 </script>
