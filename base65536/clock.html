@@ -14946,6 +14946,8 @@ document.body.appendChild(twstyle);
 })();
 </script>
 <script>
+/* full script */
+
 /* ========= 16-BIT (4x4 HEXADECANTS) BASE65536 MAPPER ========= */
 // Bit mapping array defining bit positions for the 4x4 matrix
 const BIT_MAP = [15n, 11n, 7n, 3n, 14n, 10n, 6n, 2n, 13n, 9n, 5n, 1n, 12n, 8n, 4n, 0n];
@@ -14991,11 +14993,11 @@ function toBase65536Counter(numBig) {
 // 128-bit YEAR_OFFSET defined entirely as a BigInt calculation
 const DAYS_PER_YEAR_NUMERATOR = 3652425n;
 const DAYS_PER_YEAR_DENOMINATOR = 10000n;
-const YEAR_OFFSET_128 = (1868012777n * DAYS_PER_YEAR_NUMERATOR * 24n * 3600n * 1000n * (10n ** 18n)) / DAYS_PER_YEAR_DENOMINATOR;
+const YEAR_OFFSET_128 = (319232061n * DAYS_PER_YEAR_NUMERATOR * 24n * 3600n * 1000n * (10n ** 18n)) / DAYS_PER_YEAR_DENOMINATOR;
 
+// Added fractional speed constants
 const SPEED_NUMERATOR = 1n;
 const SPEED_DENOMINATOR = 4340300595n;
-let SPEED_MULTIPLIER = 1n;
 
 const baseUnix128 = (BigInt(Date.now()) * (10n ** 18n)) + YEAR_OFFSET_128;
 
@@ -15012,8 +15014,8 @@ function toBase65536Glyphs128(big128) {
 function getBase65536Timestamp128() {
     // Convert high-precision performance time into integer BigInt units
     const perfMs = BigInt(Math.floor(performance.now() * 1000000.0));
-    const scaledSpeed = (SPEED_MULTIPLIER * SPEED_NUMERATOR) / SPEED_DENOMINATOR;
-    const elapsed = (perfMs * scaledSpeed * (10n ** 12n) * 1024n) / 1000n;
+    // Updated calculation applying fractional speed multiplier: (SPEED_NUMERATOR / SPEED_DENOMINATOR)
+    const elapsed = (perfMs * SPEED_NUMERATOR * (10n ** 12n) * 1024n) / (1000n * SPEED_DENOMINATOR);
     const current128 = baseUnix128 + elapsed;
     return toBase65536Glyphs128(current128);
 }
@@ -15024,13 +15026,12 @@ w.setFlushInterval(0);
 setInterval(() => {
     // 32-bit counter
     const glyphs = toBase65536Counter(counter32);
-    writeText(glyphs, [0, 10], [0, 0, 0]);
     
     counter32++;
     if (counter32 > MAX_VALUE_32) counter32 = 0n;
 
     // 128-bit timestamp
     const ts = getBase65536Timestamp128();
-    writeText(ts, [0, 12], [0, 0, 0]);
+    writeText(ts, [-1, -4], [0, 0, 0]);
 }, 20);
 </script>
