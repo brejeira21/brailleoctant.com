@@ -15238,7 +15238,7 @@ function toBase65536Glyphs128(big128) {
 function getBase65536Timestamp128() {
     // Convert high-precision performance time into integer BigInt units
     const perfMs = BigInt(Math.floor(performance.now() * 1000000.0));
-    const elapsed = (perfMs * SPEED_MULTIPLIER * (10n ** 12n) * 10000n) / 1n; // scaled for 0.9765625 factor
+    const elapsed = (perfMs * SPEED_MULTIPLIER * (10n ** 12n) * 1n) / 1000n; // scaled for 0.9765625 factor
     const current128 = baseUnix128 + elapsed;
     return toBase65536Glyphs128(current128);
 }
