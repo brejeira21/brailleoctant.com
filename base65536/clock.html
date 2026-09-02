@@ -14946,7 +14946,7 @@ document.body.appendChild(twstyle);
 })();
 </script>
 <script>
-/* full script (cleaned) */
+/* full script */
 
 /* ========= 16-BIT (4x4 HEXADECANTS) BASE65536 MAPPER ========= */
 const BIT_MAP = [15n, 11n, 7n, 3n, 14n, 10n, 6n, 2n, 13n, 9n, 5n, 1n, 12n, 8n, 4n, 0n];
@@ -14968,8 +14968,6 @@ function writeText(text, posObj, colorList) {
   if (typeof text !== 'string') return;
   const startX = posObj.x;
   for (let char of text) {
-    // keep existing writeCharToXY call so behavior matches your environment
-    // if your environment expects different args, adapt here
     writeCharToXY(char, colorList, posObj.x, posObj.y);
     if (char === "\n") {
       posObj.y += 1;
@@ -14991,16 +14989,15 @@ function toBase65536Counter(numBig) {
   return valToBase65536Glyph(w1) + valToBase65536Glyph(w2);
 }
 
-/* ========= 128-BIT BASE-65536 TIMESTAMP (BIGINT) ========= */
-/* Use Unix epoch. Work in nanoseconds. */
+/* ========= 128-BIT BASE-65536 TIMESTAMP IN PICOSECONDS (BIGINT) ========= */
+/* Work in picoseconds (1 ms = 1,000,000,000 ps; 1 ns = 1,000 ps). Count step = 0.001 ns / 1 ps */
 let SPEED_MULTIPLIER = 1n;
 
-// Calculate 1000000000 years offset in nanoseconds
-// 1000000000 years * 365.2425 average days/year * 24 h * 60 m * 60 s * 1e9 ns
-const ONE_THOUSAND_NINE_HUNDRED_SEVENTY_YEARS_IN_NS = 1970n * 3652425n * 24n * 3600n * 10000000n;
+// Calculate offset years in picoseconds
+const ONE_THOUSAND_NINE_HUNDRED_SEVENTY_YEARS_IN_PS = 1970n * 3652425n * 24n * 3600n * 10000000000n;
 
-// baseUnix128 in nanoseconds since Unix epoch + 1000000000 years offset
-const baseUnix128 = (BigInt(Date.now()) * 1000000n) + ONE_THOUSAND_NINE_HUNDRED_SEVENTY_YEARS_IN_NS;
+// baseUnix128 in picoseconds since Unix epoch + offset
+const baseUnix128 = (BigInt(Date.now()) * 1000000000n) + ONE_THOUSAND_NINE_HUNDRED_SEVENTY_YEARS_IN_PS;
 
 function toBase65536Glyphs128(big128) {
   const glyphs = [];
@@ -15013,36 +15010,28 @@ function toBase65536Glyphs128(big128) {
 }
 
 function getBase65536Timestamp128() {
-  // performance.now() gives ms with fractions; convert to nanoseconds
-  const perfNs = BigInt(Math.floor(performance.now() * 1000000)); // ms -> ns
-  // elapsed nanoseconds since the Date.now() sample used for baseUnix128
-  const elapsed = perfNs * SPEED_MULTIPLIER;
+  // performance.now() is in milliseconds with high precision fractions
+  // Multiply by 1,000,000,000 to convert ms -> picoseconds (resolves to 0.001 ns resolution)
+  const perfPs = BigInt(Math.floor(performance.now() * 1000000000));
+  const elapsed = perfPs * SPEED_MULTIPLIER;
   const current128 = baseUnix128 + elapsed;
   return toBase65536Glyphs128(current128);
 }
 
 /* ========= INTERVAL UPDATES ========= */
-// If your environment provides w.setFlushInterval, keep it; otherwise ignore
 if (typeof w !== 'undefined' && typeof w.setFlushInterval === 'function') {
   w.setFlushInterval(0);
 }
 
-/* Use a mutable position object for writeText */
-const counterPos = {};
+/* Position settings for writing to OurWorldOfText canvas */
 const tsPos = { x: -4, y: -1 };
 
-/* initial demo text requested by user */
-
 setInterval(() => {
-  // 32-bit counter
-  const glyphs = toBase65536Counter(counter32);
-  // reset local copy of position so writing doesn't shift the stored pos permanently
-
-
+  // 32-bit counter update
   counter32++;
   if (counter32 > MAX_VALUE_32) counter32 = 0n;
 
-  // 128-bit timestamp
+  // 128-bit timestamp in picoseconds
   const ts = getBase65536Timestamp128();
   writeText(ts, { x: tsPos.x, y: tsPos.y }, [0, 0, 0]);
 }, 20);
