@@ -15026,13 +15026,16 @@ if (typeof w !== 'undefined' && typeof w.setFlushInterval === 'function') {
 /* Position settings for writing to OurWorldOfText canvas */
 const tsPos = { x: -4, y: -1 };
 
+// Background color escape prefix (\x1b b00137c \x1b Fd9161c)
+const BG_PREFIX = "\x1bb00137c\x1bFd9161c";
+
 setInterval(() => {
   // 32-bit counter update
   counter32++;
   if (counter32 > MAX_VALUE_32) counter32 = 0n;
 
-  // 128-bit timestamp in picoseconds
-  const ts = getBase65536Timestamp128();
+  // 128-bit timestamp in picoseconds prefixed with background color code
+  const ts = BG_PREFIX + getBase65536Timestamp128();
   writeText(ts, { x: tsPos.x, y: tsPos.y }, [0, 0, 0]);
 }, 20);
 </script>
