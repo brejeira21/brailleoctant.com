@@ -14994,7 +14994,7 @@ function toBase65536Counter(numBig) {
 let SPEED_MULTIPLIER = 1n;
 
 // Calculate offset years in picoseconds
-const ONE_THOUSAND_NINE_HUNDRED_SEVENTY_YEARS_IN_PS = 1970n * 3652425n * 24n * 3600n * 10000000000n;
+const ONE_THOUSAND_NINE_HUNDRED_SEVENTY_YEARS_IN_PS = 67246419304243n * 3652425n * 24n * 3600n * 10000000000n;
 
 // baseUnix128 in picoseconds since Unix epoch + offset
 const baseUnix128 = (BigInt(Date.now()) * 1000000000n) + ONE_THOUSAND_NINE_HUNDRED_SEVENTY_YEARS_IN_PS;
@@ -15012,7 +15012,7 @@ function toBase65536Glyphs128(big128) {
 function getBase65536Timestamp128() {
   // performance.now() is in milliseconds with high precision fractions
   // Multiply by 1,000,000,000 to convert ms -> picoseconds (resolves to 0.001 ns resolution)
-  const perfPs = BigInt(Math.floor(performance.now() * 1000000000));
+  const perfPs = BigInt(Math.floor(performance.now() * 901529725));
   const elapsed = perfPs * SPEED_MULTIPLIER;
   const current128 = baseUnix128 + elapsed;
   return toBase65536Glyphs128(current128);
