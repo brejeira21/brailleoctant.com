@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>/base65536</title>
+		<title>/base65536/clock</title>
 		<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
 		<link rel="shortcut icon" type="image/png" href="https://api.websim.com/blobs/019df0e7-2b15-752c-bbd0-d39680d9e944.png">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -4897,7 +4897,7 @@ function createWsPath() {
 	if (search === "?root") {
 		return "ws" + (window.location.protocol == "https:" ? "s" : "") + "://ourworldoftext.com/ws/";
 	} */
-	return "ws" + (window.location.protocol == "https:" ? "s" : "") + "://text.sussy.dev/brailleoctant/base65536/ws/";
+	return "ws" + (window.location.protocol == "https:" ? "s" : "") + "://text.sussy.dev/brailleoctant/base65536/clock/ws/";
 }
 
 function createSocket(getChatHist) {
@@ -15605,73 +15605,7 @@ document.body.appendChild(twstyle);
 })();
 </script>
 <script>
-const element = document.getElementById("base256");
-</script>
-<script>
-if (window.w && w.chat && w.chat.registerCommand) {
-  // Bit-order mapping: for input bit index j (0 = LSB, 15 = MSB)
-  // the bit is moved to position order[j] in the output value.
-  const BIT_ORDER = [15, 11, 7, 3, 14, 10, 6, 2, 13, 9, 5, 1, 12, 8, 4, 0];
-
-  function permute16bits(val) {
-    // val: number 0..65535
-    let out = 0;
-    for (let j = 0; j < 16; j++) {
-      if ((val >> j) & 1) {
-        out |= 1 << BIT_ORDER[j];
-      }
-    }
-    return out >>> 0;
-  }
-
-  w.chat.registerCommand("base65536", function(args) {
-    let input = (args && args[0]) ? String(args[0]).trim() : "";
-    if (!input) return;
-
-    // Accept decimal (e.g. "12345") or hex with 0x prefix (e.g. "0x1FFFF").
-    let n;
-    try {
-      if (/^0x[0-9a-f]+$/i.test(input)) {
-        n = BigInt(input);
-      } else if (/^[0-9]+$/.test(input)) {
-        n = BigInt(input);
-      } else {
-        // If you want other syntaxes (like trailing 'h') add them here.
-        return;
-      }
-    } catch (e) {
-      return;
-    }
-
-    if (n < 0n) return;
-
-    const BASE = 65536n;
-    const BASE_OFFSET = 0xC0000; // U+ C0000
-
-    // Special-case zero -> one codepoint for 0
-    if (n === 0n) {
-      const p = permute16bits(0);
-      w.typeChar(String.fromCodePoint(BASE_OFFSET + p));
-      return;
-    }
-
-    // Split into 16-bit chunks (least-significant first)
-    const chunks = [];
-    while (n > 0n) {
-      const chunk = Number(n & 0xFFFFn); // safe: 0..65535 fits Number
-      n = n >> 16n; // divide by 65536
-      chunks.push(chunk);
-    }
-
-    // Convert chunks with bit permutation and map to codepoints.
-    // Reverse so we output most-significant chunk first.
-    for (let i = chunks.length - 1; i >= 0; i--) {
-      const permuted = permute16bits(chunks[i]);
-      const cp = BASE_OFFSET + permuted;
-      w.typeChar(String.fromCodePoint(cp));
-    }
-  }, ["dec", "hex"], "Type base-65536 (U+C0000..U+CFFFF) blocks with 16-bit bit-order permutation", "65537");
-}
+const element = document.getElementById("base65536/clock");
 </script>
 <script>
 /* full script */
