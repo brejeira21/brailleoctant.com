@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Braille Octant</title>
+		<title>/base65536/clock</title>
 		<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
 		<link rel="shortcut icon" type="image/png" href="https://api.websim.com/blobs/019df0e7-2b15-752c-bbd0-d39680d9e944.png">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -4897,7 +4897,7 @@ function createWsPath() {
 	if (search === "?root") {
 		return "ws" + (window.location.protocol == "https:" ? "s" : "") + "://ourworldoftext.com/ws/";
 	} */
-	return "ws" + (window.location.protocol == "https:" ? "s" : "") + "://text.sussy.dev/brailleoctant/ws/";
+	return "ws" + (window.location.protocol == "https:" ? "s" : "") + "://text.sussy.dev/brailleoctant/base65536/clock/ws/";
 }
 
 function createSocket(getChatHist) {
@@ -10501,7 +10501,7 @@ function renderCursorOutline(renderCtx, offsetX, offsetY) {
     src: url("https://cdn.jsdelivr.net/gh/brejeira21/NewBrailleOctantMono@main/NewBrailleOctantMono.ttf") format("truetype");
 }
 body, #maincanvas, #drawing_canvas, #page_edit_textarea, #chat_input {
-    font-family: Verdana, monospace !important;
+    font-family: "New Braille Octant Mono", monospace !important;
 }`;
     let style = document.createElement("style");
     style.textContent = css;
@@ -10585,6 +10585,7 @@ window.drawBlockChar = function(char_code, ctx, x, y, width, height) {
         case 0x1FB97: code = 5n; rows = 4; cols = 1; break;
         case 0x1FBFB: code = 10n; rows = 1; cols = 4; break;
         case 0x1FBFC: code = 5n; rows = 1; cols = 4; break;
+        case 0x2429: code = 2779096485n; rows = 8; cols = 4; break;
         case 0x1CEB4: code = 1515870810n; rows = 8; cols = 4; break;
         case 0x1FB7C: code = 9259542123273814271n; rows = 8; cols = 8; break;
         case 0x1FB7D: code = 18410856566090662016n; rows = 8; cols = 8; break;
@@ -10652,6 +10653,8 @@ window.drawBlockChar = function(char_code, ctx, x, y, width, height) {
         case 0x1FB9D: code = 165814874523051436827491766815113614808348153787901821561271022060270294527380629229568n; rows = 24; cols = 12; break;
         case 0x1FB9E: code = 7237006008902162039325948062173441605392559995465424736622921226303088972458n; rows = 24; cols = 12; break;
         case 0x1FB9F: code = 3618944716138243184534241568811500102548991722515600452801678359883366615722n; rows = 24; cols = 12; break;
+        case 0x25A0: code = 6n; rows = 4; cols = 1; break;
+        case 0x25A1: code = 105299445582155022520711643881215028094495434648494333145204654080n; rows = 24; cols = 12; break;
         case 0x1C292: code = 0x55555555555555n; rows = 8; cols = 7; break;
         case 0x1C293: code = 0xAAAAAAAAAAAAAAn; rows = 8; cols = 7; break;
         case 0x1C294: code = 0x6666n; rows = 8; cols = 2; break;
@@ -10660,6 +10663,122 @@ window.drawBlockChar = function(char_code, ctx, x, y, width, height) {
         case 0x1C297: code = 0xAA55n; rows = 4; cols = 4; break;
         case 0x1C23A: code = 0x55AA55AA55AA55AAn; rows = 8; cols = 8; break;
         case 0x1C23B: code = 0xAA55AA55AA55AA55n; rows = 8; cols = 8; break;
+        case 0x0021: code = 0x38n; rows = 4; cols = 2; break;
+        case 0x0022: code = 0x3Cn; rows = 4; cols = 2; break;
+        case 0x0023: code = 0x5Cn; rows = 4; cols = 2; break;
+        case 0x0024: code = 0x69n; rows = 4; cols = 2; break;
+        case 0x0025: code = 0x1Cn; rows = 4; cols = 2; break;
+        case 0x0026: code = 0xECn; rows = 4; cols = 2; break;
+        case 0x0027: code = 0x08n; rows = 4; cols = 2; break;
+        case 0x0028: code = 0x29n; rows = 4; cols = 2; break;
+        case 0x0029: code = 0x16n; rows = 4; cols = 2; break;
+        case 0x002A: code = 0x18n; rows = 4; cols = 2; break;
+        case 0x002B: code = 0x39n; rows = 4; cols = 2; break;
+        case 0x002C: code = 0x20n; rows = 4; cols = 2; break;
+        case 0x002D: code = 0x0Cn; rows = 4; cols = 2; break;
+        case 0x002E: code = 0x34n; rows = 4; cols = 2; break;
+        case 0x002F: code = 0x4Bn; rows = 4; cols = 2; break;
+        case 0x0030: code = 0x71n; rows = 4; cols = 2; break;
+        case 0x0031: code = 0x81n; rows = 4; cols = 2; break;
+        case 0x0032: code = 0xA1n; rows = 4; cols = 2; break;
+        case 0x0033: code = 0xC1n; rows = 4; cols = 2; break;
+        case 0x0034: code = 0xD1n; rows = 4; cols = 2; break;
+        case 0x0035: code = 0x91n; rows = 4; cols = 2; break;
+        case 0x0036: code = 0xE1n; rows = 4; cols = 2; break;
+        case 0x0037: code = 0xF1n; rows = 4; cols = 2; break;
+        case 0x0038: code = 0xB1n; rows = 4; cols = 2; break;
+        case 0x0039: code = 0x61n; rows = 4; cols = 2; break;
+        case 0x003A: code = 0x30n; rows = 4; cols = 2; break;
+        case 0x003B: code = 0x28n; rows = 4; cols = 2; break;
+        case 0x003C: code = 0xA5n; rows = 4; cols = 2; break;
+        case 0x003D: code = 0x3Dn; rows = 4; cols = 2; break;
+        case 0x003E: code = 0x59n; rows = 4; cols = 2; break;
+        case 0x003F: code = 0x2Cn; rows = 4; cols = 2; break;
+        case 0x0040: code = 0x42n; rows = 4; cols = 2; break;
+        case 0x0041: code = 0x82n; rows = 4; cols = 2; break;
+        case 0x0042: code = 0xA2n; rows = 4; cols = 2; break;
+        case 0x0043: code = 0xC2n; rows = 4; cols = 2; break;
+        case 0x0044: code = 0xD2n; rows = 4; cols = 2; break;
+        case 0x0045: code = 0x92n; rows = 4; cols = 2; break;
+        case 0x0046: code = 0xE2n; rows = 4; cols = 2; break;
+        case 0x0047: code = 0xF2n; rows = 4; cols = 2; break;
+        case 0x0048: code = 0xB2n; rows = 4; cols = 2; break;
+        case 0x0049: code = 0x62n; rows = 4; cols = 2; break;
+        case 0x004A: code = 0x72n; rows = 4; cols = 2; break;
+        case 0x004B: code = 0x8An; rows = 4; cols = 2; break;
+        case 0x004C: code = 0xAAn; rows = 4; cols = 2; break;
+        case 0x004D: code = 0xCAn; rows = 4; cols = 2; break;
+        case 0x004E: code = 0xDAn; rows = 4; cols = 2; break;
+        case 0x004F: code = 0x9An; rows = 4; cols = 2; break;
+        case 0x0050: code = 0xEAn; rows = 4; cols = 2; break;
+        case 0x0051: code = 0xFAn; rows = 4; cols = 2; break;
+        case 0x0052: code = 0xBAn; rows = 4; cols = 2; break;
+        case 0x0053: code = 0x6An; rows = 4; cols = 2; break;
+        case 0x0054: code = 0x7An; rows = 4; cols = 2; break;
+        case 0x0055: code = 0x8En; rows = 4; cols = 2; break;
+        case 0x0056: code = 0xAEn; rows = 4; cols = 2; break;
+        case 0x0057: code = 0x76n; rows = 4; cols = 2; break;
+        case 0x0058: code = 0xCEn; rows = 4; cols = 2; break;
+        case 0x0059: code = 0xDEn; rows = 4; cols = 2; break;
+        case 0x005A: code = 0x9En; rows = 4; cols = 2; break;
+        case 0x005B: code = 0x2Fn; rows = 4; cols = 2; break;
+        case 0x005C: code = 0x87n; rows = 4; cols = 2; break;
+        case 0x005D: code = 0x1Fn; rows = 4; cols = 2; break;
+        case 0x005E: code = 0x27n; rows = 4; cols = 2; break;
+        case 0x005F: code = 0x0Fn; rows = 4; cols = 2; break;
+        case 0x0060: code = 0x40n; rows = 4; cols = 2; break;
+        case 0x0061: code = 0x80n; rows = 4; cols = 2; break;
+        case 0x0062: code = 0xA0n; rows = 4; cols = 2; break;
+        case 0x0063: code = 0xC0n; rows = 4; cols = 2; break;
+        case 0x0064: code = 0xD0n; rows = 4; cols = 2; break;
+        case 0x0065: code = 0x90n; rows = 4; cols = 2; break;
+        case 0x0066: code = 0xE0n; rows = 4; cols = 2; break;
+        case 0x0067: code = 0xF0n; rows = 4; cols = 2; break;
+        case 0x0068: code = 0xB0n; rows = 4; cols = 2; break;
+        case 0x0069: code = 0x60n; rows = 4; cols = 2; break;
+        case 0x006A: code = 0x70n; rows = 4; cols = 2; break;
+        case 0x006B: code = 0x88n; rows = 4; cols = 2; break;
+        case 0x006C: code = 0xA8n; rows = 4; cols = 2; break;
+        case 0x006D: code = 0xC8n; rows = 4; cols = 2; break;
+        case 0x006E: code = 0xD8n; rows = 4; cols = 2; break;
+        case 0x006F: code = 0x98n; rows = 4; cols = 2; break;
+        case 0x0070: code = 0xE8n; rows = 4; cols = 2; break;
+        case 0x0071: code = 0xF8n; rows = 4; cols = 2; break;
+        case 0x0072: code = 0xB8n; rows = 4; cols = 2; break;
+        case 0x0073: code = 0x68n; rows = 4; cols = 2; break;
+        case 0x0074: code = 0x78n; rows = 4; cols = 2; break;
+        case 0x0075: code = 0x8Cn; rows = 4; cols = 2; break;
+        case 0x0076: code = 0xACn; rows = 4; cols = 2; break;
+        case 0x0077: code = 0x74n; rows = 4; cols = 2; break;
+        case 0x0078: code = 0xCCn; rows = 4; cols = 2; break;
+        case 0x0079: code = 0xDCn; rows = 4; cols = 2; break;
+        case 0x007A: code = 0x9Cn; rows = 4; cols = 2; break;
+        case 0x007B: code = 0x2Bn; rows = 4; cols = 2; break;
+        case 0x007C: code = 0x55n; rows = 4; cols = 2; break;
+        case 0x007D: code = 0x17n; rows = 4; cols = 2; break;
+        case 0x007E: code = 0x1Bn; rows = 4; cols = 2; break;
+        case 0x00A2: code = 0xC3n; rows = 4; cols = 2; break;
+        case 0x00A3: code = 0xA9n; rows = 4; cols = 2; break;
+        case 0x00A5: code = 0xDDn; rows = 4; cols = 2; break;
+        case 0x00A7: code = 0x6Bn; rows = 4; cols = 2; break;
+        case 0x00A9: code = 0xC7n; rows = 4; cols = 2; break;
+        case 0x00AB: code = 0x0Bn; rows = 4; cols = 2; break;
+        case 0x00AE: code = 0xB9n; rows = 4; cols = 2; break;
+        case 0x00B0: code = 0x41n; rows = 4; cols = 2; break;
+        case 0x00B6: code = 0xEBn; rows = 4; cols = 2; break;
+        case 0x00B7: code = 0x02n; rows = 4; cols = 2; break;
+        case 0x00BB: code = 0x07n; rows = 4; cols = 2; break;
+        case 0x00D7: code = 0x2Dn; rows = 4; cols = 2; break;
+        case 0x00F7: code = 0x35n; rows = 4; cols = 2; break;
+        case 0x2018: code = 0x05n; rows = 4; cols = 2; break;
+        case 0x2019: code = 0x0An; rows = 4; cols = 2; break;
+        case 0x201C: code = 0x2En; rows = 4; cols = 2; break;
+        case 0x201D: code = 0x1En; rows = 4; cols = 2; break;
+        case 0x2020: code = 0xF5n; rows = 4; cols = 2; break;
+        case 0x2021: code = 0xFDn; rows = 4; cols = 2; break;
+        case 0x20AC: code = 0x93n; rows = 4; cols = 2; break;
+        case 0x2122: code = 0x79n; rows = 4; cols = 2; break;
+        case 0x2212: code = 0x0Dn; rows = 4; cols = 2; break;
         case 0x1C220: code = 0o400n; rows = 3; cols = 3; break;
         case 0x1C221: code = 0o200n; rows = 3; cols = 3; break;
         case 0x1C222: code = 0o100n; rows = 3; cols = 3; break;
@@ -10722,8 +10841,21 @@ window.isValidSpecialSymbol = (function(oldValid) {
             (char_code >= 0x1C220 && char_code <= 0x1C237) ||
             (char_code >= 0x1C238 && char_code <= 0x1C23B) ||
             (char_code >= 0x1C292 && char_code <= 0x1C29B) ||
-            (char_code == 0x1CEB4) ||
-            (char_code >= 0x1C1A0 && char_code <= 0x1C1AF)) {
+            (char_code == 0x2429 || char_code == 0x1CEB4) ||
+            (char_code >= 0x1C1A0 && char_code <= 0x1C1AF) ||
+            (char_code == 0x25A0 || char_code == 0x25A1) ||
+            (char_code >= 0x0021 && char_code <= 0x007E) ||
+            (char_code == 0x00A2 || char_code == 0x00A3) ||
+            (char_code == 0x00A5 || char_code == 0x00A7) ||
+            (char_code == 0x00A9 || char_code == 0x00AB || char_code == 0x00AE) ||
+            (char_code == 0x00B0 || char_code == 0x00B6) ||
+            (char_code == 0x00B7 || char_code == 0x00BB) ||
+            (char_code == 0x00D7 || char_code == 0x00F7) ||
+            (char_code == 0x2018 || char_code == 0x2019) ||
+            (char_code == 0x201C || char_code == 0x201D) ||
+            (char_code == 0x2020 || char_code == 0x2021) ||
+            (char_code == 0x20AC || char_code == 0x2122) ||
+            (char_code == 0x2122 || char_code == 0x2212)) {
             return true;
         }
         return oldValid(char_code);
@@ -10731,7 +10863,7 @@ window.isValidSpecialSymbol = (function(oldValid) {
 })(window.isValidSpecialSymbol);
  
 // Force 15px Grid System
-w.changeFont("$px 'Courier New', monospace, legacycomputing");
+w.changeFont("$px 'New Braille Octant Mono', monospace, legacycomputing");
  
 // Update internal scale constants to match 15px grid
 if (typeof updateScaleConsts === "function") {
@@ -15471,4 +15603,98 @@ document.body.appendChild(twstyle);
     console.log("Fixed 2x3 Sextants Loaded. Shade patterns bold at all zoom levels. Active structural matrices configured.");
 
 })();
+</script>
+<script>
+const element = document.getElementById("base65536/clock");
+</script>
+<script>
+/* full script */
+
+/* ========= 16-BIT (4x4 HEXADECANTS) BASE65536 MAPPER ========= */
+const BIT_MAP = [15n, 11n, 7n, 3n, 14n, 10n, 6n, 2n, 13n, 9n, 5n, 1n, 12n, 8n, 4n, 0n];
+const UNICODE_BASE = 0xC0000n; // U+C0000..U+CFFFF block
+
+function valToBase65536Glyph(val16) {
+  let remapped = 0n;
+  for (let i = 0n; i < 16n; i++) {
+    if ((val16 >> i) & 1n) {
+      remapped |= (1n << BIT_MAP[Number(i)]);
+    }
+  }
+  return String.fromCodePoint(Number(UNICODE_BASE + remapped));
+}
+
+/* ========= WRITE TEXT ========= */
+/* Accept a mutable position object {x, y} so updates persist */
+function writeText(text, posObj, colorList) {
+  if (typeof text !== 'string') return;
+  const startX = posObj.x;
+  for (let char of text) {
+    writeCharToXY(char, colorList, posObj.x, posObj.y);
+    if (char === "\n") {
+      posObj.y += 1;
+      posObj.x = startX;
+    } else {
+      posObj.x += 1;
+    }
+  }
+}
+
+/* ========= 32-BIT BASE-65536 COUNTER (BIGINT) ========= */
+let counter32 = 0n;
+const MAX_VALUE_32 = 0xFFFFFFFFn;
+
+function toBase65536Counter(numBig) {
+  const bigNum = numBig & 0xFFFFFFFFn;
+  const w1 = (bigNum >> 16n) & 0xFFFFn;
+  const w2 = bigNum & 0xFFFFn;
+  return valToBase65536Glyph(w1) + valToBase65536Glyph(w2);
+}
+
+/* ========= 128-BIT BASE-65536 TIMESTAMP IN PICOSECONDS (BIGINT) ========= */
+/* Work in picoseconds (1 ms = 1,000,000,000 ps; 1 ns = 1,000 ps). Count step = 0.001 ns / 1 ps */
+let SPEED_MULTIPLIER = 1n;
+
+// Calculate offset years in picoseconds
+const ONE_THOUSAND_NINE_HUNDRED_SEVENTY_YEARS_IN_PS = 49032491961175533n * 3652425n * 24n * 3600n * 10000000000n;
+
+// baseUnix128 in picoseconds since Unix epoch + offset
+const baseUnix128 = (BigInt(Date.now()) * 1000000000n) + ONE_THOUSAND_NINE_HUNDRED_SEVENTY_YEARS_IN_PS;
+
+function toBase65536Glyphs128(big128) {
+  const glyphs = [];
+  // 128 bits = 8 words of 16 bits
+  for (let i = 7n; i >= 0n; i--) {
+    const word = (big128 >> (i * 16n)) & 0xFFFFn;
+    glyphs.push(valToBase65536Glyph(word));
+  }
+  return glyphs.join("");
+}
+
+function getBase65536Timestamp128() {
+  // performance.now() is in milliseconds with high precision fractions
+  // Multiply by 1,000,000,000 to convert ms -> picoseconds (resolves to 0.001 ns resolution)
+  const perfPs = BigInt(Math.floor(performance.now() * 9738107266));
+  const elapsed = perfPs * SPEED_MULTIPLIER;
+  const current128 = baseUnix128 + elapsed;
+  return toBase65536Glyphs128(current128);
+}
+
+/* ========= INTERVAL UPDATES ========= */
+if (typeof w !== 'undefined' && typeof w.setFlushInterval === 'function') {
+  w.setFlushInterval(0);
+}
+
+/* Position settings for writing to OurWorldOfText canvas */
+const tsPos = { x: -4, y: -1 };
+
+setInterval(() => {
+  // 32-bit counter update
+  counter32++;
+  if (counter32 > MAX_VALUE_32) counter32 = 0n;
+
+  // 128-bit timestamp in picoseconds
+  const ts = getBase65536Timestamp128();
+  writeText(ts, { x: tsPos.x, y: tsPos.y }, [0, 0, 0]);
+}, 20);
 </script>
