@@ -15431,7 +15431,7 @@ document.body.appendChild(twstyle);
         ctx.beginPath();
 
         // Loop through the 6 bits of the 2x3 sextant mask
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 9; i++) {
             let cx = i % cols;
             let cy = Math.floor(i / cols);
             
@@ -15673,3 +15673,216 @@ if (window.w && w.chat && w.chat.registerCommand) {
   }, ["dec", "hex"], "Type base-65536 (U+C0000..U+CFFFF) blocks with 16-bit bit-order permutation", "65537");
 }
 </script>
+
+				<script>
+(function() {
+
+    /* ============================================================
+       1. Core 2x3 Path Renderer with 6x8 Binary Shading Pattern
+       ============================================================ */
+
+    function draw2x3Block(ctx, x, y, width, height, mask) {
+        const rows = 7;
+        const cols = 1;
+        const subW = width / cols;
+        const subH = height / rows;
+
+        // 6x8 Binary Shading Pattern matrices (0 = Empty, 1 = Pattern active)
+        const pattern0 = [
+            [0,0,0,0],
+            [0,0,0,0],
+            [0,0,0,0],
+            [0,0,0,0],
+            [0,0,0,0],
+            [0,0,0,0],
+            [0,0,0,0],
+            [0,0,0,0]
+        ];
+
+        const pattern1 = [
+            [1,1,1,1],
+            [1,1,1,1],
+            [1,1,1,1],
+            [1,1,1,1],
+            [1,1,1,1],
+            [1,1,1,1],
+            [1,1,1,1],
+            [1,1,1,1]
+        ];
+
+        ctx.save();
+        ctx.beginPath();
+
+        // Loop through the 6 bits of the 2x3 sextant mask
+        for (let i = 0; i < 7; i++) {
+            let cx = i % cols;
+            let cy = Math.floor(i / cols);
+            
+            let cellX = x + (cx * subW);
+            let cellY = y + (cy * subH);
+
+            let pixelW = subW / 4;
+            let pixelH = subH / 8;
+
+            if ((mask >> i) & 1) {
+                // Active bits draw solid pattern1
+                for (let py = 0; py < 8; py++) {
+                    for (let px = 0; px < 6; px++) {
+                        if (pattern1[py][px] === 1) {
+                            ctx.rect(
+                                cellX + (px * pixelW), 
+                                cellY + (py * pixelH), 
+                                pixelW, 
+                                pixelH
+                            );
+                        }
+                    }
+                }
+            } else {
+                // Blank spaces (0 bits) draw checkerboard pattern0
+                for (let py = 0; py < 8; py++) {
+                    for (let px = 0; px < 6; px++) {
+                        if (pattern0[py][px] === 1) {
+                            ctx.rect(
+                                cellX + (px * pixelW), 
+                                cellY + (py * pixelH), 
+                                pixelW, 
+                                pixelH
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    /* ============================================================
+       2. Native Bit-Shift Fallback Geometry Renderer
+       ============================================================ */
+
+    function draw2by3Char(charCode, textRender, x, y, width, height) {
+        var code = 0;
+        // Skips and offsets matching constraints across the structural bounds
+        if(charCode >= 0x1C164 && charCode <= 0x1C177) code = charCode - 0x1C164 + 1;
+        if(charCode >= 0x1C178 && charCode <= 0x1C18B) code = charCode - 0x1C164 + 2;
+        if(charCode >= 0x1C18C && charCode <= 0x1C19F) code = charCode - 0x1C164 + 3;
+        
+        textRender.save();
+        textRender.beginPath();
+
+        for(var py = 0; py < 3; py++) {
+            var idx = py * 2;
+            if(code >> idx & 1) {
+                if (code >> idx & 2) {
+                    textRender.rect(x, y + py * (height / 3), width, height / 3);
+                } else {
+                    textRender.rect(x, y + py * (height / 3), width / 2, height / 3);
+                }
+            } else if (code >> idx & 2) {
+                textRender.rect(x + (width / 2), y + py * (height / 3), width / 2, height / 3);
+            }
+        }
+
+        textRender.closePath();
+        textRender.fill();
+        textRender.restore();
+    }
+
+    /* ============================================================
+       3. Mask Mapping & Filtering Utilities (64 - 4 = 60 Patterns)
+       ============================================================ */
+
+    const START_CHAR = 0x1BF00;
+    const END_CHAR = 0x1BF7D;
+
+    // Generates valid masks skipping: 0x00, 0x155, 0x2AA, 0x3FF
+    function getValidMasks() {
+        let masks = [];
+        for (let m = 0x01; m <= 0x3FF; m++) {
+            if (m === 0x00 || m === 0x155 || m === 0x2AA || m === 0x3FF) continue;
+            masks.push(m);
+        }
+        return masks;
+    }
+
+    const validMasks = getValidMasks();
+
+    function charToMask(char_code) {
+        let index = char_code - START_CHAR;
+        if (index >= 0 && index < validMasks.length) {
+            return validMasks[index];
+        }
+        return null;
+    }
+
+    function maskToChar(mask) {
+        let index = validMasks.indexOf(mask);
+        if (index !== -1) {
+            return START_CHAR + index;
+        }
+        return null;
+    }
+
+    /* ============================================================
+       4. Patching the drawBlockChar Dispatcher
+       ============================================================ */
+
+    const originalDrawBlockChar = window.drawBlockChar;
+
+    window.drawBlockChar = function(char_code, ctx, x, y, width, height) {
+        if (char_code >= START_CHAR && char_code <= END_CHAR) {
+            const mask = charToMask(char_code);
+            if (mask !== null) {
+                // Renders the primary textured variant
+                draw2x3Block(ctx, x, y, width, height, mask);
+                return;
+            }
+        }
+        return originalDrawBlockChar.apply(this, arguments);
+    };
+
+    /* ============================================================
+       5. Update Validity Check
+       ============================================================ */
+
+    const originalIsValid = window.isValidSpecialSymbol;
+    window.isValidSpecialSymbol = function(char_code) {
+        if (char_code >= START_CHAR && char_code <= END_CHAR) {
+            return true;
+        }
+        return originalIsValid(char_code);
+    };
+
+    /* ============================================================
+       6. Register Chat Command
+       ============================================================ */
+
+    if (window.w && w.chat && w.chat.registerCommand) {
+        w.chat.registerCommand("b23", function(args) {
+            let input = args[0];
+            if (!input) return;
+            let val = parseInt(input, 16);
+            
+            if (!isNaN(val)) {
+                let charCode = maskToChar(val);
+                if (charCode !== null) {
+                    let char = String.fromCodePoint(charCode);
+                    w.typeChar(char);
+                } else {
+                    console.log("Hex value skipped or out of bounds (0x00, 0x55, 0xAA, 0xFF are restricted).");
+                }
+            }
+        }, ["hex"], "Type 2x3 medium shade sextant", "FE");
+    }
+
+    // Settings Cleanup and screen refresh
+    bufferLargeChars = false; 
+    w.redraw();
+    
+    console.log("Fixed 2x3 Sextants Loaded. Shade patterns bold at all zoom levels. Active structural matrices configured.");
+
+})();
